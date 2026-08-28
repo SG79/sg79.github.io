@@ -57,14 +57,6 @@
             50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4)); }
         }
 
-        .toast-enter {
-            animation: toastEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes toastEnter {
-            from { opacity: 0; transform: translate(-50%, -20px) scale(0.95); }
-            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        }
-
         .glow-card { box-shadow: 0 0 25px rgba(52, 211, 153, 0.35); }
     </style>
 </head>
@@ -113,6 +105,7 @@
             return dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
         };
 
+        // --- VALORES INICIALES ---
         const DEFAULT_SETTINGS = {
             profile: { name: '', weight: '', age: '', height: '', goal: 'bulk_clean', activity: '1.375' },
             goals: { p: 140, c: 280, f: 65 },
@@ -136,7 +129,6 @@
             modal: hasCompletedOnboarding ? null : 'onboarding',
             onboardingStep: 1,
             tempOnboarding: { name: '', weight: '', height: '', age: '', activity: '1.375', goal: 'bulk_clean' },
-            settingsSuggestion: null,
             aiHubTab: 'scan',
             aiLoading: false,
             aiResult: null,
@@ -145,8 +137,7 @@
             selectedPhotoPreview: null,
             selectedPhotoBase64: null,
             calendarViewMode: 'calendar',
-            calendarViewDate: new Date(),
-            toastMessage: null // Sistema de notificaciones propio sin ventanas del navegador
+            calendarViewDate: new Date()
         };
 
         if (state.settings.geminiModel === 'gemini-2.5-flash-lite' || !state.settings.geminiModel) {
@@ -158,14 +149,25 @@
             localStorage.setItem('mt_cleanbulk_history', JSON.stringify(state.history));
         };
 
-        // Notificación flotante propia (Reemplaza a los molestos alert del navegador)
+        // --- SISTEMA DE NOTIFICACIONES TOAST (AISLADO, SIN REFRESCAR PANTALLA) ---
+        let toastTimer = null;
         function showCustomToast(msg) {
-            state.toastMessage = msg;
-            render();
-            setTimeout(() => {
-                state.toastMessage = null;
-                render();
-            }, 3000);
+            let toast = document.getElementById('native-app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'native-app-toast';
+                toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-[300] bg-stone-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold text-xs border border-stone-700 pointer-events-none transition-all duration-300 opacity-0 -translate-y-4';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-4');
+            }, 2500);
         }
 
         const calculateStreak = () => {
@@ -249,7 +251,7 @@
         // --- RENDER PRINCIPAL ---
         function render() {
             const app = document.getElementById('app');
-            const { settings, history, currentDate, activeMealId, toastMessage } = state;
+            const { settings, history, currentDate, activeMealId } = state;
             const activeDateData = history[currentDate] || {};
 
             const meals = settings.templates.map(t => ({
@@ -283,13 +285,6 @@
             const streak = calculateStreak();
 
             app.innerHTML = `
-                <!-- TOAST NOTIFICACIÓN PROPIA -->
-                ${toastMessage ? `
-                    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] bg-stone-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold text-xs toast-enter border border-stone-700">
-                        <span>${toastMessage}</span>
-                    </div>
-                ` : ''}
-
                 <!-- HEADER -->
                 <div class="flex flex-col px-5 pt-[max(1.2rem,env(safe-area-inset-top))] pb-3 bg-stone-50 z-20 border-b border-stone-200/60 shadow-sm shrink-0">
                     <div class="flex justify-between items-start">
@@ -572,41 +567,70 @@
             render();
         }
 
-        // --- CÁLCULO DE METAS DENTRO DE AJUSTES ---
+        // --- CÁLCULO DE METAS EN TIEMPO REAL (SIN DESTRUIR EL FORMULARIO) ---
+        let currentSuggestionData = null;
         function calculateSettingsMagicGoals() {
-            const w = document.getElementById('set_weight')?.value || state.settings.profile.weight;
-            const h = document.getElementById('set_height')?.value || state.settings.profile.height;
-            const a = document.getElementById('set_age')?.value || state.settings.profile.age;
-            const act = document.getElementById('set_activity')?.value || state.settings.profile.activity || '1.375';
-            const goal = document.getElementById('set_goal')?.value || state.settings.profile.goal || 'bulk_clean';
+            const w = document.getElementById('set_weight')?.value;
+            const h = document.getElementById('set_height')?.value;
+            const a = document.getElementById('set_age')?.value;
+            const act = document.getElementById('set_activity')?.value;
+            const goal = document.getElementById('set_goal')?.value;
 
             if (parseFloat(w) > 0 && parseFloat(h) > 0 && parseFloat(a) > 0) {
                 const computed = computeMacrosEngine(w, h, a, act, goal);
-                state.settingsSuggestion = { p: computed.p, c: computed.c, f: computed.f, cals: computed.cals, goalName: computed.goalName };
-                render();
+                currentSuggestionData = computed;
+
+                const box = document.getElementById('settings_suggestion_box');
+                if (box) {
+                    box.innerHTML = `
+                        <div class="bg-emerald-50 p-4 rounded-3xl border border-emerald-200 mb-3 smooth-enter">
+                            <span class="block text-sm font-black text-emerald-900 text-center">¡Plan de ${computed.goalName}!</span>
+                            <div class="grid grid-cols-3 gap-2 text-center my-3">
+                                <div>
+                                    <div class="text-2xl font-black text-rose-500">${computed.p}g</div>
+                                    <div class="text-[10px] font-bold text-rose-400 uppercase">Proteína</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-amber-500">${computed.c}g</div>
+                                    <div class="text-[10px] font-bold text-amber-400 uppercase">Carbos</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-teal-600">${computed.f}g</div>
+                                    <div class="text-[10px] font-bold text-teal-400 uppercase">Grasa</div>
+                                </div>
+                            </div>
+                            <div class="text-xs font-bold text-emerald-700 text-center mb-3">Gasto / Ref: ${computed.cals} kcal diarias</div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="document.getElementById('settings_suggestion_box').classList.add('hidden')" class="flex-1 py-2 bg-white text-stone-500 rounded-xl font-bold text-xs border border-stone-200 active:scale-95">Descartar</button>
+                                <button type="button" onclick="applySettingsSuggestion()" class="flex-1 py-2 rounded-xl bg-emerald-500 text-white font-black text-xs shadow-md active:scale-95">¡Aplicar Metas!</button>
+                            </div>
+                        </div>
+                    `;
+                    box.classList.remove('hidden');
+                }
             } else {
                 showCustomToast("Completa peso, altura y edad en tu perfil.");
             }
         }
 
         function applySettingsSuggestion() {
-            if (state.settingsSuggestion) {
-                const { p, c, f } = state.settingsSuggestion;
+            if (currentSuggestionData) {
+                const { p, c, f } = currentSuggestionData;
                 const inpP = document.getElementById('set_goal_p');
                 const inpC = document.getElementById('set_goal_c');
                 const inpF = document.getElementById('set_goal_f');
                 if (inpP) inpP.value = p;
                 if (inpC) inpC.value = c;
                 if (inpF) inpF.value = f;
-                state.settings.goals = { p, c, f };
-                state.settingsSuggestion = null;
-                saveState();
-                render();
+                
+                const box = document.getElementById('settings_suggestion_box');
+                if (box) box.classList.add('hidden');
+                showCustomToast("¡Metas aplicadas a los campos!");
             }
         }
 
         function renderSettingsModal() {
-            const { settings, settingsSuggestion } = state;
+            const { settings } = state;
             return `
                 <div class="fixed inset-0 z-[100] flex justify-center bg-stone-900/40 backdrop-blur-sm">
                     <div class="w-full max-w-md h-full bg-stone-50 flex flex-col smooth-enter relative shadow-2xl border-x border-stone-200">
@@ -691,7 +715,7 @@
                                 </div>
                             </section>
 
-                            <!-- METAS DIRECTAS -->
+                            <!-- METAS DIRECTAS CON CONTENEDOR AISLADO -->
                             <section>
                                 <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest flex items-center gap-1.5">${Icons.Target} Metas Diarias</h3>
@@ -700,30 +724,8 @@
                                     </button>
                                 </div>
 
-                                ${settingsSuggestion ? `
-                                    <div class="bg-emerald-50 p-4 rounded-3xl border border-emerald-200 mb-3 smooth-enter">
-                                        <span class="block text-sm font-black text-emerald-900 text-center">¡Plan de ${settingsSuggestion.goalName}!</span>
-                                        <div class="grid grid-cols-3 gap-2 text-center my-3">
-                                            <div>
-                                                <div class="text-2xl font-black text-rose-500">${settingsSuggestion.p}g</div>
-                                                <div class="text-[10px] font-bold text-rose-400 uppercase">Proteína</div>
-                                            </div>
-                                            <div>
-                                                <div class="text-2xl font-black text-amber-500">${settingsSuggestion.c}g</div>
-                                                <div class="text-[10px] font-bold text-amber-400 uppercase">Carbos</div>
-                                            </div>
-                                            <div>
-                                                <div class="text-2xl font-black text-teal-600">${settingsSuggestion.f}g</div>
-                                                <div class="text-[10px] font-bold text-teal-400 uppercase">Grasa</div>
-                                            </div>
-                                        </div>
-                                        <div class="text-xs font-bold text-emerald-700 text-center mb-3">Gasto / Ref: ${settingsSuggestion.cals} kcal diarias</div>
-                                        <div class="flex gap-2">
-                                            <button type="button" onclick="state.settingsSuggestion = null; render();" class="flex-1 py-2 bg-white text-stone-500 rounded-xl font-bold text-xs border border-stone-200 active:scale-95">Descartar</button>
-                                            <button type="button" onclick="applySettingsSuggestion()" class="flex-1 py-2 rounded-xl bg-emerald-500 text-white font-black text-xs shadow-md active:scale-95">¡Aplicar Metas!</button>
-                                        </div>
-                                    </div>
-                                ` : ''}
+                                <!-- CONTENEDOR DINÁMICO (NO REINICIA LA PANTALLA) -->
+                                <div id="settings_suggestion_box" class="hidden"></div>
 
                                 <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm grid grid-cols-3 gap-2">
                                     <div><label class="text-rose-500 font-black text-xs block mb-1">Pro (g)</label><input type="number" id="set_goal_p" value="${settings.goals.p}" class="w-full bg-rose-50 rounded-xl p-2.5 text-xl font-black text-rose-600 text-center"></div>
