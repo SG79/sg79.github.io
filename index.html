@@ -167,7 +167,6 @@
             localStorage.setItem('mt_cleanbulk_history', JSON.stringify(state.history));
         };
 
-        // --- SISTEMA TOAST FLOTANTE AISLADO ---
         let toastTimer = null;
         function showCustomToast(msg) {
             let toast = document.getElementById('native-app-toast');
@@ -212,7 +211,6 @@
             return streak;
         };
 
-        // --- MOTOR NUTRICIONAL ---
         function computeMacrosEngine(w, h, a, act, goal) {
             const weight = parseFloat(w);
             const height = parseFloat(h);
@@ -266,82 +264,65 @@
             return { p: 140, c: 280, f: 65, cals: 2200, goalName: "Estándar" };
         }
 
-        // --- CÁLCULO DE METAS ADAPTATIVAS (PROPORCIONAL INTELIGENTE) ---
-        function getAdaptiveMealSuggestions(meals, activeMeal, remP, remC, remF) {
-            const incompleteMeals = meals.filter(m => !m.completed);
-            let displaySugP = 0, displaySugC = 0, displaySugF = 0;
-            let isManualP = false, isManualC = false, isManualF = false;
-            let isAdaptedP = false, isAdaptedC = false, isAdaptedF = false;
-
-            if (activeMeal && !activeMeal.completed) {
-                // Proteínas
-                const manualsP = incompleteMeals.filter(m => m.targetP > 0);
-                const autosP = incompleteMeals.filter(m => m.targetP === 0);
-                const totalDesiredP = manualsP.reduce((acc, m) => acc + Math.max(0, m.targetP - (Number(m.p) || 0)), 0);
-
-                if (activeMeal.targetP > 0) {
-                    isManualP = true;
-                    const myDesiredP = Math.max(0, activeMeal.targetP - (Number(activeMeal.p) || 0));
-                    if (totalDesiredP > remP) {
-                        isAdaptedP = true;
-                        displaySugP = totalDesiredP > 0 ? Math.round((myDesiredP / totalDesiredP) * remP) : 0;
-                    } else {
-                        displaySugP = myDesiredP;
-                    }
-                } else if (autosP.length > 0) {
-                    const leftoverP = Math.max(0, remP - totalDesiredP);
-                    displaySugP = Math.round(leftoverP / autosP.length);
-                }
-
-                // Carbohidratos
-                const manualsC = incompleteMeals.filter(m => m.targetC > 0);
-                const autosC = incompleteMeals.filter(m => m.targetC === 0);
-                const totalDesiredC = manualsC.reduce((acc, m) => acc + Math.max(0, m.targetC - (Number(m.c) || 0)), 0);
-
-                if (activeMeal.targetC > 0) {
-                    isManualC = true;
-                    const myDesiredC = Math.max(0, activeMeal.targetC - (Number(activeMeal.c) || 0));
-                    if (totalDesiredC > remC) {
-                        isAdaptedC = true;
-                        displaySugC = totalDesiredC > 0 ? Math.round((myDesiredC / totalDesiredC) * remC) : 0;
-                    } else {
-                        displaySugC = myDesiredC;
-                    }
-                } else if (autosC.length > 0) {
-                    const leftoverC = Math.max(0, remC - totalDesiredC);
-                    displaySugC = Math.round(leftoverC / autosC.length);
-                }
-
-                // Grasas
-                const manualsF = incompleteMeals.filter(m => m.targetF > 0);
-                const autosF = incompleteMeals.filter(m => m.targetF === 0);
-                const totalDesiredF = manualsF.reduce((acc, m) => acc + Math.max(0, m.targetF - (Number(m.f) || 0)), 0);
-
-                if (activeMeal.targetF > 0) {
-                    isManualF = true;
-                    const myDesiredF = Math.max(0, activeMeal.targetF - (Number(activeMeal.f) || 0));
-                    if (totalDesiredF > remF) {
-                        isAdaptedF = true;
-                        displaySugF = totalDesiredF > 0 ? Math.round((myDesiredF / totalDesiredF) * remF) : 0;
-                    } else {
-                        displaySugF = myDesiredF;
-                    }
-                } else if (autosF.length > 0) {
-                    const leftoverF = Math.max(0, remF - totalDesiredF);
-                    displaySugF = Math.round(leftoverF / autosF.length);
-                }
+        // --- CÁLCULO DE METAS ADAPTATIVAS EXACTO Y ROBUSTO ---
+        function calculateAdaptiveAllocation(meals, activeMeal, remP, remC, remF, dailyGoals) {
+            if (!activeMeal || activeMeal.completed) {
+                return { sugP: 0, sugC: 0, sugF: 0, isAdapted: false, isManual: false };
             }
 
+            const incompleteMeals = meals.filter(m => !m.completed);
+            
+            // Función genérica por macro
+            const allocateMacro = (macroKey, targetKey, remDaily, goalDaily) => {
+                const completedSum = meals.filter(m => m.completed).reduce((acc, m) => acc + (Number(m[macroKey]) || 0), 0);
+                const currentPool = Math.max(0, goalDaily - completedSum);
+
+                const manuals = incompleteMeals.filter(m => m[targetKey] > 0);
+                const autos = incompleteMeals.filter(m => m[targetKey] === 0);
+                const totalManualTargets = manuals.reduce((acc, m) => acc + m[targetKey], 0);
+
+                let isManual = activeMeal[targetKey] > 0;
+                let isAdapted = false;
+                let result = 0;
+
+                if (isManual) {
+                    if (totalManualTargets > currentPool) {
+                        isAdapted = true;
+                        result = totalManualTargets > 0 ? Math.round((activeMeal[targetKey] / totalManualTargets) * currentPool) : 0;
+                    } else {
+                        result = activeMeal[targetKey];
+                    }
+                } else {
+                    const leftoverForAutos = Math.max(0, currentPool - totalManualTargets);
+                    if (autos.length === 1) {
+                        // Si es la última comida automática, absorbe exactamente el sobrante
+                        result = leftoverForAutos;
+                    } else if (autos.length > 1) {
+                        result = Math.round(leftoverForAutos / autos.length);
+                    }
+                }
+
+                return {
+                    sug: result,
+                    isManual,
+                    isAdapted
+                };
+            };
+
+            const pAlloc = allocateMacro('p', 'targetP', remP, dailyGoals.p);
+            const cAlloc = allocateMacro('c', 'targetC', remC, dailyGoals.c);
+            const fAlloc = allocateMacro('f', 'targetF', remF, dailyGoals.f);
+
             return {
-                sugP: displaySugP,
-                sugC: displaySugC,
-                sugF: displaySugF,
-                isAdapted: isAdaptedP || isAdaptedC || isAdaptedF,
-                isManual: isManualP || isManualC || isManualF
+                sugP: pAlloc.sug,
+                sugC: cAlloc.sug,
+                sugF: fAlloc.sug,
+                isAdapted: pAlloc.isAdapted || cAlloc.isAdapted || fAlloc.isAdapted,
+                isManual: pAlloc.isManual || cAlloc.isManual || fAlloc.isManual
             };
         }
 
-        // --- ACTUALIZACIÓN DE MACROS EN VIVO SIN PERDER FOCO ---
+        // --- ACTUALIZACIÓN DE MACROS EN TIEMPO REAL ---
         function handleMacroInputLive(type, val) {
             const dayData = state.history[state.currentDate] || {};
             const mealData = dayData[state.activeMealId] || { p: '', c: '', f: '', completed: false };
@@ -391,28 +372,28 @@
             const remF = Math.max(0, state.settings.goals.f - totalF);
 
             const activeMeal = meals.find(m => m.id === state.activeMealId) || meals[0];
-            const adaptive = getAdaptiveMealSuggestions(meals, activeMeal, remP, remC, remF);
+            const adaptive = calculateAdaptiveAllocation(meals, activeMeal, remP, remC, remF, state.settings.goals);
 
             // Actualizar barras
             const barP = document.getElementById('progress_p_bar');
             const textP = document.getElementById('progress_p_text');
             if (barP) barP.style.width = `${percP}%`;
-            if (textP) textP.textContent = `${totalP} / ${state.settings.goals.p}g`;
+            if (textP) textP.innerHTML = `${totalP} / ${state.settings.goals.p}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remP}g)</span>`;
 
             const barC = document.getElementById('progress_c_bar');
             const textC = document.getElementById('progress_c_text');
             if (barC) barC.style.width = `${percC}%`;
-            if (textC) textC.textContent = `${totalC} / ${state.settings.goals.c}g`;
+            if (textC) textC.innerHTML = `${totalC} / ${state.settings.goals.c}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remC}g)</span>`;
 
             const barF = document.getElementById('progress_f_bar');
             const textF = document.getElementById('progress_f_text');
             if (barF) barF.style.width = `${percF}%`;
-            if (textF) textF.textContent = `${totalF} / ${state.settings.goals.f}g`;
+            if (textF) textF.innerHTML = `${totalF} / ${state.settings.goals.f}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remF}g)</span>`;
 
             const calsText = document.getElementById('total_cals_ref');
             if (calsText) calsText.textContent = totalCals;
 
-            // Actualizar etiqueta en tarjeta de comidas
+            // Actualizar badges en botones
             meals.forEach(m => {
                 const mealBtnBadge = document.getElementById(`meal_btn_badge_${m.id}`);
                 if (mealBtnBadge) {
@@ -430,7 +411,7 @@
                     remBadge.className = "inline-block text-xs font-black px-3 py-1 rounded-full bg-emerald-100 text-emerald-700";
                     remBadge.innerHTML = `¡Comida Lista! 😋`;
                 } else if (adaptive.sugP > 0 || adaptive.sugC > 0 || adaptive.sugF > 0) {
-                    const badgeTitle = adaptive.isAdapted ? 'Meta adaptada:' : (adaptive.isManual ? 'Falta / Meta:' : 'Sugerido:');
+                    const badgeTitle = adaptive.isAdapted ? '🌱 Meta adaptada en esta comida:' : (adaptive.isManual ? '🎯 Meta de esta comida:' : '💡 Sugerido en esta comida:');
                     const badgeClass = adaptive.isAdapted ? 'bg-orange-50 text-orange-700 border border-orange-200' : (adaptive.isManual ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-stone-100 text-stone-600 border border-stone-200');
                     remBadge.className = `inline-block text-[11px] font-extrabold px-3 py-0.5 rounded-full ${badgeClass}`;
                     remBadge.innerHTML = `${badgeTitle} <span class="text-rose-500 mx-0.5">${adaptive.sugP}P</span> · <span class="text-amber-500 mx-0.5">${adaptive.sugC}C</span> · <span class="text-teal-600 mx-0.5">${adaptive.sugF}G</span>`;
@@ -474,7 +455,7 @@
             const percF = Math.min(100, (totalF / (settings.goals.f || 1)) * 100);
 
             const activeMeal = meals.find(m => m.id === activeMealId) || meals[0];
-            const adaptive = getAdaptiveMealSuggestions(meals, activeMeal, remP, remC, remF);
+            const adaptive = calculateAdaptiveAllocation(meals, activeMeal, remP, remC, remF, settings.goals);
             const goalsMet = totalP >= settings.goals.p && totalC >= settings.goals.c && totalF >= settings.goals.f;
             const streak = calculateStreak();
 
@@ -505,36 +486,45 @@
                     </div>
                 </div>
 
-                <!-- MAIN SCROLL CON ANIMACIÓN DIRECCIONAL -->
+                <!-- MAIN SCROLL -->
                 <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-8 overflow-x-hidden">
                     <div class="flex flex-col gap-4 ${slideDir === 'next' ? 'slide-in-next' : 'slide-in-prev'}">
                         
-                        <!-- RESUMEN DE METAS -->
+                        <!-- RESUMEN DE METAS CON DETALLE DE RESTANTES -->
                         <div class="rounded-3xl p-5 shadow-sm border flex flex-col gap-4 transition-all ${goalsMet ? 'bg-emerald-50 border-emerald-300 glow-card' : 'bg-white border-stone-200/80'}">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <h1 class="text-xl font-black text-stone-800">${goalsMet ? '¡Metas Logradas! 🎉' : 'Macros del Día'}</h1>
+                                    <h1 class="text-xl font-black text-stone-800">${goalsMet ? '¡Metas Logradas! 🎉' : 'Resumen del Día'}</h1>
                                     <span class="text-xs font-bold text-stone-400">Ref. Calórica: <strong id="total_cals_ref" class="text-stone-600">${totalCals}</strong> / ${goalCals} kcal</span>
                                 </div>
                                 <button onclick="openModal('resetConfirm')" class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 active:scale-90">${Icons.Reset}</button>
                             </div>
                             <div class="space-y-3">
                                 <div>
-                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-rose-500 uppercase">Proteínas</span><span id="progress_p_text" class="text-stone-600">${totalP} / ${settings.goals.p}g</span></div>
+                                    <div class="flex justify-between text-xs font-black mb-1">
+                                        <span class="text-rose-500 uppercase">Proteínas</span>
+                                        <span id="progress_p_text" class="text-stone-600 font-bold">${totalP} / ${settings.goals.p}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remP}g)</span></span>
+                                    </div>
                                     <div class="w-full bg-rose-50 rounded-full h-3 border border-rose-100 overflow-hidden"><div id="progress_p_bar" class="bg-gradient-to-r from-rose-400 to-pink-500 h-full transition-all duration-300" style="width: ${percP}%"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-amber-500 uppercase">Carbohidratos</span><span id="progress_c_text" class="text-stone-600">${totalC} / ${settings.goals.c}g</span></div>
+                                    <div class="flex justify-between text-xs font-black mb-1">
+                                        <span class="text-amber-500 uppercase">Carbohidratos</span>
+                                        <span id="progress_c_text" class="text-stone-600 font-bold">${totalC} / ${settings.goals.c}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remC}g)</span></span>
+                                    </div>
                                     <div class="w-full bg-amber-50 rounded-full h-3 border border-amber-100 overflow-hidden"><div id="progress_c_bar" class="bg-gradient-to-r from-amber-400 to-orange-400 h-full transition-all duration-300" style="width: ${percC}%"></div></div>
                                 </div>
                                 <div>
-                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-teal-500 uppercase">Grasas</span><span id="progress_f_text" class="text-stone-600">${totalF} / ${settings.goals.f}g</span></div>
+                                    <div class="flex justify-between text-xs font-black mb-1">
+                                        <span class="text-teal-500 uppercase">Grasas</span>
+                                        <span id="progress_f_text" class="text-stone-600 font-bold">${totalF} / ${settings.goals.f}g <span class="text-[10px] text-stone-400 font-bold ml-1">(Falta ${remF}g)</span></span>
+                                    </div>
                                     <div class="w-full bg-teal-50 rounded-full h-3 border border-teal-100 overflow-hidden"><div id="progress_f_bar" class="bg-gradient-to-r from-teal-400 to-emerald-500 h-full transition-all duration-300" style="width: ${percF}%"></div></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- SELECTOR DE COMIDAS (CON METAS PERSONALIZADAS) -->
+                        <!-- SELECTOR DE COMIDAS -->
                         <div class="grid grid-cols-2 gap-2.5">
                             ${meals.map(m => {
                                 const pText = m.targetP > 0 ? `${Number(m.p)||0}/${m.targetP}P` : `${Number(m.p)||0}P`;
@@ -550,7 +540,7 @@
                             }).join('')}
                         </div>
 
-                        <!-- DETALLE COMIDA ACTIVA (CON BADGE ADAPTATIVO) -->
+                        <!-- DETALLE COMIDA ACTIVA -->
                         <div class="flex flex-col bg-white rounded-3xl shadow-sm border transition-colors ${activeMeal.completed ? 'border-emerald-200 bg-emerald-50/20' : 'border-stone-200'}">
                             <div class="text-center p-4 pb-2">
                                 <h2 class="text-xl font-black text-stone-800">${activeMeal.name}</h2>
@@ -560,7 +550,7 @@
                                             <span class="text-emerald-600 text-xs font-black bg-emerald-100 px-3 py-0.5 rounded-full">¡Comida Lista! 😋</span>
                                         ` : (adaptive.sugP > 0 || adaptive.sugC > 0 || adaptive.sugF > 0) ? `
                                             <span class="inline-block text-[11px] font-extrabold px-3 py-0.5 rounded-full border ${adaptive.isAdapted ? 'bg-orange-50 text-orange-700 border-orange-200' : (adaptive.isManual ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-stone-100 text-stone-600 border-stone-200')}">
-                                                ${adaptive.isAdapted ? 'Meta adaptada:' : (adaptive.isManual ? 'Falta / Meta:' : 'Sugerido:')} 
+                                                ${adaptive.isAdapted ? '🌱 Meta adaptada en esta comida:' : (adaptive.isManual ? '🎯 Meta de esta comida:' : '💡 Sugerido en esta comida:')} 
                                                 <span class="text-rose-500 mx-0.5">${adaptive.sugP}P</span> · <span class="text-amber-500 mx-0.5">${adaptive.sugC}C</span> · <span class="text-teal-600 mx-0.5">${adaptive.sugF}G</span>
                                             </span>
                                         ` : `
@@ -624,7 +614,7 @@
             return '';
         }
 
-        // --- GESTIÓN DINÁMICA DE PLANTILLAS DE COMIDAS EN AJUSTES ---
+        // --- GESTIÓN DE PLANTILLAS EN AJUSTES ---
         function addMealTemplate() {
             const newId = 'm' + Date.now();
             state.settings.templates.push({
@@ -981,7 +971,7 @@
                                 </div>
                             </section>
 
-                            <!-- GESTOR DE COMIDAS (AÑADIR / ELIMINAR / METAS PERSONALIZADAS) -->
+                            <!-- GESTOR DE COMIDAS -->
                             <section>
                                 <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest">Tus Comidas Diarias</h3>
@@ -1439,6 +1429,13 @@
             mealData.completed = !mealData.completed;
             dayData[state.activeMealId] = mealData;
             state.history[state.currentDate] = dayData;
+            
+            if (mealData.completed) {
+                // Al completar, pasar a la siguiente incompleta
+                const nextInc = state.settings.templates.find(t => !(state.history[state.currentDate]?.[t.id]?.completed));
+                if (nextInc) state.activeMealId = nextInc.id;
+            }
+
             saveState();
             render();
         }
