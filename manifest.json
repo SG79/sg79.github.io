@@ -1,14 +1,17 @@
 {
   "name": "MacroTracker IA",
   "short_name": "MacroTracker",
-  "start_url": "./index.html",
+  "description": "Contador de macronutrientes con IA para volumen limpio, definición y recomposición corporal.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fafaf9",
   "theme_color": "#fafaf9",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./icon.png",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
