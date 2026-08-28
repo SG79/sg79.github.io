@@ -10,7 +10,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
-    <!-- ENLACE AL MANIFEST -->
     <link rel="manifest" href="manifest.json">
     
     <title>MacroTracker IA - Fitness Tracker</title>
@@ -56,6 +55,14 @@
         @keyframes pulseGlow {
             0%, 100% { transform: scale(1); opacity: 0.8; }
             50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4)); }
+        }
+
+        .toast-enter {
+            animation: toastEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes toastEnter {
+            from { opacity: 0; transform: translate(-50%, -20px) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
 
         .glow-card { box-shadow: 0 0 25px rgba(52, 211, 153, 0.35); }
@@ -138,7 +145,8 @@
             selectedPhotoPreview: null,
             selectedPhotoBase64: null,
             calendarViewMode: 'calendar',
-            calendarViewDate: new Date()
+            calendarViewDate: new Date(),
+            toastMessage: null // Sistema de notificaciones propio sin ventanas del navegador
         };
 
         if (state.settings.geminiModel === 'gemini-2.5-flash-lite' || !state.settings.geminiModel) {
@@ -149,6 +157,16 @@
             localStorage.setItem('mt_cleanbulk_settings', JSON.stringify(state.settings));
             localStorage.setItem('mt_cleanbulk_history', JSON.stringify(state.history));
         };
+
+        // Notificación flotante propia (Reemplaza a los molestos alert del navegador)
+        function showCustomToast(msg) {
+            state.toastMessage = msg;
+            render();
+            setTimeout(() => {
+                state.toastMessage = null;
+                render();
+            }, 3000);
+        }
 
         const calculateStreak = () => {
             let streak = 0;
@@ -174,7 +192,7 @@
             return streak;
         };
 
-        // --- MOTOR DE CÁLCULO NUTRICIONAL (4 OBJETIVOS) ---
+        // --- MOTOR NUTRICIONAL ---
         function computeMacrosEngine(w, h, a, act, goal) {
             const weight = parseFloat(w);
             const height = parseFloat(h);
@@ -231,7 +249,7 @@
         // --- RENDER PRINCIPAL ---
         function render() {
             const app = document.getElementById('app');
-            const { settings, history, currentDate, activeMealId } = state;
+            const { settings, history, currentDate, activeMealId, toastMessage } = state;
             const activeDateData = history[currentDate] || {};
 
             const meals = settings.templates.map(t => ({
@@ -265,6 +283,13 @@
             const streak = calculateStreak();
 
             app.innerHTML = `
+                <!-- TOAST NOTIFICACIÓN PROPIA -->
+                ${toastMessage ? `
+                    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-[200] bg-stone-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold text-xs toast-enter border border-stone-700">
+                        <span>${toastMessage}</span>
+                    </div>
+                ` : ''}
+
                 <!-- HEADER -->
                 <div class="flex flex-col px-5 pt-[max(1.2rem,env(safe-area-inset-top))] pb-3 bg-stone-50 z-20 border-b border-stone-200/60 shadow-sm shrink-0">
                     <div class="flex justify-between items-start">
@@ -390,7 +415,7 @@
             return '';
         }
 
-        // --- ASISTENTE DE BIENVENIDA (ONBOARDING) ---
+        // --- ASISTENTE DE BIENVENIDA ---
         function renderOnboardingModal() {
             const step = state.onboardingStep;
             const temp = state.tempOnboarding;
@@ -547,6 +572,7 @@
             render();
         }
 
+        // --- CÁLCULO DE METAS DENTRO DE AJUSTES ---
         function calculateSettingsMagicGoals() {
             const w = document.getElementById('set_weight')?.value || state.settings.profile.weight;
             const h = document.getElementById('set_height')?.value || state.settings.profile.height;
@@ -559,7 +585,7 @@
                 state.settingsSuggestion = { p: computed.p, c: computed.c, f: computed.f, cals: computed.cals, goalName: computed.goalName };
                 render();
             } else {
-                alert("¡Por favor completa peso, altura y edad en tu perfil para calcular!");
+                showCustomToast("Completa peso, altura y edad en tu perfil.");
             }
         }
 
@@ -665,7 +691,7 @@
                                 </div>
                             </section>
 
-                            <!-- METAS DIRECTAS CON BOTÓN AUTO-CALCULAR -->
+                            <!-- METAS DIRECTAS -->
                             <section>
                                 <div class="flex justify-between items-center mb-2">
                                     <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest flex items-center gap-1.5">${Icons.Target} Metas Diarias</h3>
@@ -715,6 +741,15 @@
                                     <input type="file" id="import_file" onchange="importBackupData(event)" accept=".json" class="hidden">
                                 </div>
                             </section>
+
+                            <!-- CRÉDITOS -->
+                            <section class="pt-4 pb-2 text-center">
+                                <div class="inline-flex items-center justify-center gap-1.5 text-stone-400">
+                                    <span class="text-xs font-extrabold uppercase tracking-widest">Creado por</span>
+                                    <span class="bg-stone-200 text-stone-600 px-2 py-1 rounded-md text-xs font-black">Samuel Guerra</span>
+                                </div>
+                                <p class="text-[10px] font-bold text-stone-400 mt-2 tracking-widest uppercase">MacroTracker v1.5.0</p>
+                            </section>
                         </div>
                         <div class="absolute bottom-0 left-0 w-full p-4 bg-stone-50 border-t border-stone-200 pb-[calc(1rem+env(safe-area-inset-bottom))]">
                             <button onclick="saveSettingsForm()" class="w-full py-3.5 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95">Guardar Cambios</button>
@@ -740,6 +775,7 @@
             `;
         }
 
+        // --- CALENDARIO (LUNES A DOMINGO) ---
         function renderCalendarModal() {
             const { goals } = state.settings;
             const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -1155,6 +1191,7 @@
             state.settings.goals.f = parseInt(document.getElementById('set_goal_f').value) || 65;
             saveState();
             closeModal();
+            showCustomToast("Ajustes guardados correctamente");
         }
 
         function exportBackupData() {
@@ -1166,6 +1203,7 @@
             a.download = `MacroTracker_Backup_${getLocalDateStr()}.json`;
             a.click();
             URL.revokeObjectURL(url);
+            showCustomToast("Copia de seguridad exportada");
         }
 
         function importBackupData(e) {
@@ -1179,11 +1217,11 @@
                         state.settings = parsed.settings;
                         state.history = parsed.history;
                         saveState();
-                        alert("¡Copia de seguridad restaurada con éxito! 🎉");
                         closeModal();
+                        showCustomToast("¡Copia de seguridad restaurada! 🎉");
                     }
                 } catch(err) {
-                    alert("Error al leer el archivo JSON.");
+                    showCustomToast("Error al leer el archivo JSON.");
                 }
             };
             reader.readAsText(file);
@@ -1199,6 +1237,7 @@
             state.history[state.currentDate] = dayData;
             saveState();
             closeModal();
+            showCustomToast("Macros añadidos a la comida");
         }
 
         // --- LLAMADAS A GEMINI ---
@@ -1315,7 +1354,7 @@
         // REGISTRO DEL SERVICE WORKER
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('/sw.js')
                     .then(reg => console.log('SW registrado', reg))
                     .catch(err => console.log('Error SW', err));
             });
