@@ -1364,3 +1364,1437 @@
     </script>
 </body>
 </html>
+```
+2m35.3s
+Model 6:06 p.m.
+ThinkingThoughts
+Expand to view model thoughts
+
+chevron_right
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="theme-color" content="#fafaf9">
+    <meta name="color-scheme" content="light">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <title>MacroTracker IA - Fitness Tracker</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        html, body {
+            background-color: #fafaf9;
+            color: #44403c; 
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden; 
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        /* Animaciones Direccionales de Deslizamiento (Swipe) */
+        .slide-in-next { 
+            animation: slideInNext 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+        }
+        .slide-in-prev { 
+            animation: slideInPrev 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; 
+        }
+        
+        @keyframes slideInNext {
+            from { opacity: 0; transform: translateX(35px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInPrev {
+            from { opacity: 0; transform: translateX(-35px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .smooth-enter { 
+            animation: smoothEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+        }
+        @keyframes smoothEnter { 
+            from { opacity: 0; transform: translateY(12px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4)); }
+        }
+
+        .glow-card { box-shadow: 0 0 25px rgba(52, 211, 153, 0.35); }
+    </style>
+</head>
+<body class="w-screen h-screen flex justify-center">
+
+    <div id="app" class="w-full max-w-md h-full flex flex-col relative bg-stone-50 shadow-2xl border-x border-stone-200 overflow-hidden pb-[env(safe-area-inset-bottom)]"></div>
+
+    <script>
+        // --- ICONOS SVG ---
+        const Icons = {
+            Sparkles: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>',
+            Settings: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+            Check: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+            Left: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+            Right: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+            Calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+            Reset: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>',
+            Flame: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+            X: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+            Scale: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
+            Camera: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+            Download: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+            Upload: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+            Info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+            Cpu: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 14h3"/><path d="M1 9h3"/><path d="M1 14h3"/></svg>',
+            User: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+            Target: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>'
+        };
+
+        const getLocalDateStr = (d = new Date()) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        };
+
+        const formatDisplayDate = (dateStr) => {
+            const todayStr = getLocalDateStr();
+            if (dateStr === todayStr) return "Hoy";
+            const [y, m, d] = dateStr.split('-');
+            const dateObj = new Date(y, m - 1, d);
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+            if (dateStr === getLocalDateStr(yesterday)) return "Ayer";
+            const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+            if (dateStr === getLocalDateStr(tomorrow)) return "Mañana";
+            return dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
+        };
+
+        const DEFAULT_SETTINGS = {
+            profile: { name: '', weight: '', age: '', height: '', goal: 'bulk_clean', activity: '1.375' },
+            goals: { p: 140, c: 280, f: 65 },
+            geminiApiKey: '',
+            geminiModel: 'gemini-3.5-flash-lite',
+            templates: [
+                { id: 'm1', name: 'Desayuno', targetP: '', targetC: '', targetF: '' },
+                { id: 'm2', name: 'Almuerzo', targetP: '', targetC: '', targetF: '' },
+                { id: 'm3', name: 'Merienda', targetP: '', targetC: '', targetF: '' },
+                { id: 'm4', name: 'Cena', targetP: '', targetC: '', targetF: '' }
+            ]
+        };
+
+        const hasCompletedOnboarding = localStorage.getItem('mt_onboarding_completed') === 'true';
+
+        let state = {
+            settings: JSON.parse(localStorage.getItem('mt_cleanbulk_settings')) || DEFAULT_SETTINGS,
+            history: JSON.parse(localStorage.getItem('mt_cleanbulk_history')) || {},
+            currentDate: getLocalDateStr(),
+            slideDir: 'next', // 'next' | 'prev'
+            activeMealId: 'm1',
+            modal: hasCompletedOnboarding ? null : 'onboarding',
+            onboardingStep: 1,
+            tempOnboarding: { name: '', weight: '', height: '', age: '', activity: '1.375', goal: 'bulk_clean' },
+            settingsSuggestion: null,
+            aiHubTab: 'scan',
+            aiLoading: false,
+            aiResult: null,
+            advisorAdvice: null,
+            advisorError: null,
+            selectedPhotoPreview: null,
+            selectedPhotoBase64: null,
+            calendarViewMode: 'calendar',
+            calendarViewDate: new Date()
+        };
+
+        if (state.settings.geminiModel === 'gemini-2.5-flash-lite' || !state.settings.geminiModel) {
+            state.settings.geminiModel = 'gemini-3.5-flash-lite';
+        }
+
+        const saveState = () => {
+            localStorage.setItem('mt_cleanbulk_settings', JSON.stringify(state.settings));
+            localStorage.setItem('mt_cleanbulk_history', JSON.stringify(state.history));
+        };
+
+        // --- SISTEMA TOAST FLOTANTE AISLADO ---
+        let toastTimer = null;
+        function showCustomToast(msg) {
+            let toast = document.getElementById('native-app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'native-app-toast';
+                toast.className = 'fixed top-6 left-1/2 -translate-x-1/2 z-[300] bg-stone-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 font-bold text-xs border border-stone-700 pointer-events-none transition-all duration-300 opacity-0 -translate-y-4';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', '-translate-y-4');
+            }, 2500);
+        }
+
+        const calculateStreak = () => {
+            let streak = 0;
+            let checkDate = new Date();
+            const checkMet = (dStr) => {
+                const dData = state.history[dStr];
+                if (!dData) return false;
+                let p = 0, c = 0, f = 0;
+                Object.values(dData).forEach(m => {
+                    p += Number(m.p) || 0;
+                    c += Number(m.c) || 0;
+                    f += Number(m.f) || 0;
+                });
+                return p >= state.settings.goals.p && c >= state.settings.goals.c && f >= state.settings.goals.f;
+            };
+
+            if (checkMet(getLocalDateStr(checkDate))) streak++;
+            while (true) {
+                checkDate.setDate(checkDate.getDate() - 1);
+                if (checkMet(getLocalDateStr(checkDate))) streak++;
+                else break;
+            }
+            return streak;
+        };
+
+        // --- MOTOR NUTRICIONAL ---
+        function computeMacrosEngine(w, h, a, act, goal) {
+            const weight = parseFloat(w);
+            const height = parseFloat(h);
+            const age = parseFloat(a);
+            const activity = parseFloat(act) || 1.375;
+
+            if (weight > 0 && height > 0 && age > 0) {
+                const bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+                const maintenanceCals = bmr * activity;
+                
+                let targetCals = maintenanceCals;
+                let protMultiplier = 2.0;
+                let fatMultiplier = 0.9;
+                let goalName = "Volumen Limpio";
+
+                if (goal === 'bulk_clean') {
+                    targetCals = maintenanceCals + 300;
+                    protMultiplier = 2.0;
+                    fatMultiplier = 0.9;
+                    goalName = "Volumen Limpio 🌱";
+                } else if (goal === 'bulk_normal') {
+                    targetCals = maintenanceCals + 500;
+                    protMultiplier = 1.9;
+                    fatMultiplier = 1.0;
+                    goalName = "Volumen Normal ⚡";
+                } else if (goal === 'cut') {
+                    targetCals = maintenanceCals - 450;
+                    protMultiplier = 2.2;
+                    fatMultiplier = 0.8;
+                    goalName = "Definición 🔥";
+                } else if (goal === 'recomp') {
+                    targetCals = maintenanceCals;
+                    protMultiplier = 2.2;
+                    fatMultiplier = 0.85;
+                    goalName = "Recomposición Corporal 🔄";
+                }
+
+                const suggP = Math.round(weight * protMultiplier);
+                const suggF = Math.round(weight * fatMultiplier);
+                const remainingCals = targetCals - (suggP * 4) - (suggF * 9);
+                const suggC = Math.max(0, Math.round(remainingCals / 4));
+
+                return {
+                    p: suggP,
+                    c: suggC,
+                    f: suggF,
+                    cals: Math.round(targetCals),
+                    goalName
+                };
+            }
+            return { p: 140, c: 280, f: 65, cals: 2200, goalName: "Estándar" };
+        }
+
+        // --- RENDER PRINCIPAL ---
+        function render() {
+            const app = document.getElementById('app');
+            const { settings, history, currentDate, activeMealId, slideDir } = state;
+            const activeDateData = history[currentDate] || {};
+
+            const meals = settings.templates.map(t => ({
+                id: t.id,
+                name: t.name,
+                targetP: parseInt(t.targetP) || 0,
+                targetC: parseInt(t.targetC) || 0,
+                targetF: parseInt(t.targetF) || 0,
+                p: activeDateData[t.id]?.p !== undefined ? activeDateData[t.id].p : '',
+                c: activeDateData[t.id]?.c !== undefined ? activeDateData[t.id].c : '',
+                f: activeDateData[t.id]?.f !== undefined ? activeDateData[t.id].f : '',
+                completed: activeDateData[t.id]?.completed || false
+            }));
+
+            const totalP = meals.reduce((acc, m) => acc + (Number(m.p) || 0), 0);
+            const totalC = meals.reduce((acc, m) => acc + (Number(m.c) || 0), 0);
+            const totalF = meals.reduce((acc, m) => acc + (Number(m.f) || 0), 0);
+            const totalCals = (totalP * 4) + (totalC * 4) + (totalF * 9);
+            const goalCals = (settings.goals.p * 4) + (settings.goals.c * 4) + (settings.goals.f * 9);
+
+            const remP = Math.max(0, settings.goals.p - totalP);
+            const remC = Math.max(0, settings.goals.c - totalC);
+            const remF = Math.max(0, settings.goals.f - totalF);
+
+            const percP = Math.min(100, (totalP / (settings.goals.p || 1)) * 100);
+            const percC = Math.min(100, (totalC / (settings.goals.c || 1)) * 100);
+            const percF = Math.min(100, (totalF / (settings.goals.f || 1)) * 100);
+
+            const activeMeal = meals.find(m => m.id === activeMealId) || meals[0];
+            const goalsMet = totalP >= settings.goals.p && totalC >= settings.goals.c && totalF >= settings.goals.f;
+            const streak = calculateStreak();
+
+            app.innerHTML = `
+                <!-- HEADER -->
+                <div class="flex flex-col px-5 pt-[max(1.2rem,env(safe-area-inset-top))] pb-3 bg-stone-50 z-20 border-b border-stone-200/60 shadow-sm shrink-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-2xl font-black text-stone-800 tracking-tight">
+                                    ${settings.profile?.name ? `¡Hola, ${settings.profile.name}!` : '¡Hola! 👋'}
+                                </h2>
+                                ${streak > 0 ? `<div class="flex items-center gap-1 bg-amber-500/10 text-amber-600 px-2.5 py-0.5 rounded-full text-xs font-black border border-amber-200">${Icons.Flame} <span>${streak}d</span></div>` : ''}
+                            </div>
+                            <p class="text-stone-500 font-bold text-sm mt-1 flex items-center gap-1.5">
+                                <button onclick="changeDate(-1)" class="p-1 hover:bg-stone-200 rounded-full active:scale-90 transition-transform">${Icons.Left}</button>
+                                <button onclick="openModal('calendar')" class="capitalize min-w-[75px] text-center flex items-center justify-center gap-1.5 px-2 py-1 rounded-lg hover:bg-stone-200 active:scale-95 transition-all text-stone-700 font-extrabold">
+                                    ${formatDisplayDate(currentDate)} ${Icons.Calendar}
+                                </button>
+                                <button onclick="changeDate(1)" class="p-1 hover:bg-stone-200 rounded-full active:scale-90 transition-transform">${Icons.Right}</button>
+                                ${currentDate !== getLocalDateStr() ? `<span onclick="jumpToToday()" class="text-[10px] font-black text-amber-600 ml-1 cursor-pointer bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wider active:scale-95">Hoy</span>` : ''}
+                            </p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openModal('aiHub')" class="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white active:scale-90 transition-transform shadow-md">${Icons.Sparkles}</button>
+                            <button onclick="openModal('settings')" class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-600 active:scale-90 transition-transform shadow-sm border border-stone-200">${Icons.Settings}</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAIN SCROLL (CON ANIMACIÓN DE SWIPE DIRECCIONAL) -->
+                <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 pb-8 overflow-x-hidden">
+                    <div class="flex flex-col gap-4 ${slideDir === 'next' ? 'slide-in-next' : 'slide-in-prev'}">
+                        
+                        <!-- RESUMEN DE METAS -->
+                        <div class="rounded-3xl p-5 shadow-sm border flex flex-col gap-4 transition-all ${goalsMet ? 'bg-emerald-50 border-emerald-300 glow-card' : 'bg-white border-stone-200/80'}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h1 class="text-xl font-black text-stone-800">${goalsMet ? '¡Metas Logradas! 🎉' : 'Macros del Día'}</h1>
+                                    <span class="text-xs font-bold text-stone-400">Ref. Calórica: <strong class="text-stone-600">${totalCals}</strong> / ${goalCals} kcal</span>
+                                </div>
+                                <button onclick="openModal('resetConfirm')" class="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 active:scale-90">${Icons.Reset}</button>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-rose-500 uppercase">Proteínas</span><span class="text-stone-600">${totalP} / ${settings.goals.p}g</span></div>
+                                    <div class="w-full bg-rose-50 rounded-full h-3 border border-rose-100 overflow-hidden"><div class="bg-gradient-to-r from-rose-400 to-pink-500 h-full transition-all duration-500" style="width: ${percP}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-amber-500 uppercase">Carbohidratos</span><span class="text-stone-600">${totalC} / ${settings.goals.c}g</span></div>
+                                    <div class="w-full bg-amber-50 rounded-full h-3 border border-amber-100 overflow-hidden"><div class="bg-gradient-to-r from-amber-400 to-orange-400 h-full transition-all duration-500" style="width: ${percC}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs font-black mb-1"><span class="text-teal-500 uppercase">Grasas</span><span class="text-stone-600">${totalF} / ${settings.goals.f}g</span></div>
+                                    <div class="w-full bg-teal-50 rounded-full h-3 border border-teal-100 overflow-hidden"><div class="bg-gradient-to-r from-teal-400 to-emerald-500 h-full transition-all duration-500" style="width: ${percF}%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SELECTOR DE COMIDAS -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            ${meals.map(m => `
+                                <button onclick="setActiveMeal('${m.id}')" class="relative p-3 rounded-2xl flex flex-col items-start transition-all active:scale-95 text-left border ${activeMealId === m.id ? 'bg-white border-stone-400 shadow-md transform scale-[1.02]' : 'bg-stone-100/70 border-transparent'}">
+                                    <span class="text-xs font-black truncate w-full ${activeMealId === m.id ? 'text-stone-800' : 'text-stone-500'}">${m.name}</span>
+                                    <span class="text-[11px] font-bold mt-1 ${activeMealId === m.id ? 'text-stone-600' : 'text-stone-400'}">${Number(m.p)||0}P · ${Number(m.c)||0}C · ${Number(m.f)||0}G</span>
+                                    ${m.completed ? `<div class="absolute top-3 right-3 text-emerald-500">${Icons.Check}</div>` : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- DETALLE COMIDA ACTIVA -->
+                        <div class="flex flex-col bg-white rounded-3xl shadow-sm border transition-colors ${activeMeal.completed ? 'border-emerald-200 bg-emerald-50/20' : 'border-stone-200'}">
+                            <div class="text-center p-4 pb-2">
+                                <h2 class="text-xl font-black text-stone-800">${activeMeal.name}</h2>
+                                <div class="h-6 mt-1 flex justify-center items-center">
+                                    ${activeMeal.completed ? `<span class="text-emerald-600 text-xs font-black bg-emerald-100 px-3 py-0.5 rounded-full">¡Completada! 😋</span>` : `<span class="inline-block text-[11px] font-extrabold px-3 py-0.5 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-100">Falta hoy: <span class="text-rose-500">${remP}P</span> · <span class="text-amber-500">${remC}C</span> · <span class="text-teal-600">${remF}G</span></span>`}
+                                </div>
+                            </div>
+
+                            <!-- INPUTS PRO, CARB, GRASA -->
+                            <div class="grid grid-cols-3 px-3 py-3 gap-2">
+                                <div class="flex flex-col items-center bg-rose-50/50 rounded-2xl p-2.5 border border-rose-100">
+                                    <span class="text-rose-500 font-black text-xs uppercase tracking-wider">Pro</span>
+                                    <input type="number" value="${activeMeal.p}" oninput="updateMealMacro('p', this.value)" class="w-full text-center bg-transparent text-3xl font-black text-rose-600 outline-none my-1" placeholder="0">
+                                    <div class="w-full grid grid-cols-2 gap-1 mt-auto">
+                                        <button onclick="adjustMacro('p', -5)" class="py-1 bg-white shadow-sm border border-rose-100 rounded-lg text-rose-500 font-black text-xs active:scale-90">-5</button>
+                                        <button onclick="adjustMacro('p', 5)" class="py-1 bg-white shadow-sm border border-rose-100 rounded-lg text-rose-500 font-black text-xs active:scale-90">+5</button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center bg-amber-50/50 rounded-2xl p-2.5 border border-amber-100">
+                                    <span class="text-amber-500 font-black text-xs uppercase tracking-wider">Carb</span>
+                                    <input type="number" value="${activeMeal.c}" oninput="updateMealMacro('c', this.value)" class="w-full text-center bg-transparent text-3xl font-black text-amber-500 outline-none my-1" placeholder="0">
+                                    <div class="w-full grid grid-cols-2 gap-1 mt-auto">
+                                        <button onclick="adjustMacro('c', -5)" class="py-1 bg-white shadow-sm border border-amber-100 rounded-lg text-amber-500 font-black text-xs active:scale-90">-5</button>
+                                        <button onclick="adjustMacro('c', 5)" class="py-1 bg-white shadow-sm border border-amber-100 rounded-lg text-amber-500 font-black text-xs active:scale-90">+5</button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center bg-teal-50/50 rounded-2xl p-2.5 border border-teal-100">
+                                    <span class="text-teal-600 font-black text-xs uppercase tracking-wider">Grasa</span>
+                                    <input type="number" value="${activeMeal.f}" oninput="updateMealMacro('f', this.value)" class="w-full text-center bg-transparent text-3xl font-black text-teal-600 outline-none my-1" placeholder="0">
+                                    <div class="w-full grid grid-cols-2 gap-1 mt-auto">
+                                        <button onclick="adjustMacro('f', -5)" class="py-1 bg-white shadow-sm border border-teal-100 rounded-lg text-teal-600 font-black text-xs active:scale-90">-5</button>
+                                        <button onclick="adjustMacro('f', 5)" class="py-1 bg-white shadow-sm border border-teal-100 rounded-lg text-teal-600 font-black text-xs active:scale-90">+5</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 pt-1">
+                                <button onclick="toggleMealComplete()" class="w-full py-3.5 rounded-2xl font-black text-base transition-all flex items-center justify-center gap-2 active:scale-95 ${activeMeal.completed ? 'bg-stone-100 text-stone-500 border border-stone-200' : 'bg-stone-800 text-white shadow-md'}">
+                                    ${activeMeal.completed ? 'Reabrir Comida' : 'Completar Comida'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODALES -->
+                ${renderModals()}
+            `;
+        }
+
+        function renderModals() {
+            if (!state.modal) return '';
+            if (state.modal === 'onboarding') return renderOnboardingModal();
+            if (state.modal === 'resetConfirm') return renderResetConfirmModal();
+            if (state.modal === 'calendar') return renderCalendarModal();
+            if (state.modal === 'settings') return renderSettingsModal();
+            if (state.modal === 'modelSpecs') return renderModelSpecsModal();
+            if (state.modal === 'aiHub') return renderAIHubModal();
+            return '';
+        }
+
+        // --- ASISTENTE ONBOARDING ---
+        function renderOnboardingModal() {
+            const step = state.onboardingStep;
+            const temp = state.tempOnboarding;
+            const computed = computeMacrosEngine(temp.weight, temp.height, temp.age, temp.activity, temp.goal);
+
+            return `
+                <div class="fixed inset-0 z-[120] bg-stone-900/60 backdrop-blur-md flex items-center justify-center p-4">
+                    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl flex flex-col smooth-enter border border-stone-200 relative">
+                        
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center gap-1.5">
+                                ${[1, 2, 3, 4].map(s => `
+                                    <div class="h-2 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-indigo-600' : (step > s ? 'w-2 bg-indigo-200' : 'w-2 bg-stone-200')}"></div>
+                                `).join('')}
+                            </div>
+                            <button onclick="skipOnboarding()" class="text-xs font-extrabold text-stone-400 hover:text-stone-600 px-2 py-1 rounded-lg">
+                                Saltar
+                            </button>
+                        </div>
+
+                        ${step === 1 ? `
+                            <div class="flex flex-col gap-4 smooth-enter">
+                                <div class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-1">${Icons.User}</div>
+                                <div>
+                                    <h2 class="text-2xl font-black text-stone-800">¡Te damos la bienvenida! 👋</h2>
+                                    <p class="text-xs font-bold text-stone-500 mt-1">Personalizaremos tus macros exactos para tu objetivo físico.</p>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-black text-stone-400 uppercase tracking-widest block mb-2">¿Cómo te llamas?</label>
+                                    <input type="text" id="ob_name" value="${temp.name}" placeholder="Tu nombre..." class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 font-bold text-stone-800 text-lg outline-none focus:border-indigo-400">
+                                </div>
+                                <button onclick="nextOnboardingStep(1)" class="w-full py-4 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform mt-4">Continuar</button>
+                            </div>
+                        ` : ''}
+
+                        ${step === 2 ? `
+                            <div class="flex flex-col gap-4 smooth-enter">
+                                <div class="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mb-1">${Icons.Scale}</div>
+                                <div>
+                                    <h2 class="text-2xl font-black text-stone-800">Tus Medidas 📏</h2>
+                                    <p class="text-xs font-bold text-stone-500 mt-1">Servirán para calcular tu gasto calórico basal.</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-xs font-black text-stone-400 uppercase tracking-widest block mb-2">Peso (kg)</label>
+                                        <input type="number" id="ob_weight" value="${temp.weight}" placeholder="Ej: 75" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 font-black text-stone-800 text-center text-xl outline-none focus:border-amber-400">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-black text-stone-400 uppercase tracking-widest block mb-2">Altura (cm)</label>
+                                        <input type="number" id="ob_height" value="${temp.height}" placeholder="Ej: 178" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 font-black text-stone-800 text-center text-xl outline-none focus:border-amber-400">
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 mt-4">
+                                    <button onclick="state.onboardingStep = 1; render();" class="py-4 px-5 rounded-2xl bg-stone-100 text-stone-600 font-black text-sm active:scale-95">Atrás</button>
+                                    <button onclick="nextOnboardingStep(2)" class="flex-1 py-4 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform">Siguiente</button>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${step === 3 ? `
+                            <div class="flex flex-col gap-3.5 smooth-enter">
+                                <div>
+                                    <h2 class="text-xl font-black text-stone-800">Tu Enfoque y Rutina 🎯</h2>
+                                    <p class="text-xs font-bold text-stone-500 mt-0.5">Elige tu objetivo y nivel de entrenamiento.</p>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-black text-stone-400 uppercase tracking-wider block mb-1">Objetivo Nutricional</label>
+                                    <select id="ob_goal" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3 font-bold text-stone-800 text-xs outline-none focus:border-indigo-400">
+                                        <option value="bulk_clean" ${temp.goal === 'bulk_clean' ? 'selected' : ''}>🌱 Volumen Limpio (+ Superávit moderado)</option>
+                                        <option value="bulk_normal" ${temp.goal === 'bulk_normal' ? 'selected' : ''}>⚡ Volumen Normal (+ Superávit clásico)</option>
+                                        <option value="cut" ${temp.goal === 'cut' ? 'selected' : ''}>🔥 Definición (- Déficit controlado)</option>
+                                        <option value="recomp" ${temp.goal === 'recomp' ? 'selected' : ''}>🔄 Recomposición (Mantenimiento + Alta Pro)</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[11px] font-black text-stone-400 uppercase tracking-wider block mb-1">Edad</label>
+                                        <input type="number" id="ob_age" value="${temp.age}" placeholder="Ej: 24" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3 font-black text-stone-800 text-center text-sm outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="text-[11px] font-black text-stone-400 uppercase tracking-wider block mb-1">Actividad</label>
+                                        <select id="ob_activity" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3 font-bold text-stone-700 text-xs outline-none">
+                                            <option value="1.2" ${temp.activity === '1.2' ? 'selected' : ''}>Sedentario</option>
+                                            <option value="1.375" ${temp.activity === '1.375' ? 'selected' : ''}>Ligero (1-2d)</option>
+                                            <option value="1.55" ${temp.activity === '1.55' ? 'selected' : ''}>Moderado (3-5d)</option>
+                                            <option value="1.725" ${temp.activity === '1.725' ? 'selected' : ''}>Intenso (6-7d)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 mt-3">
+                                    <button onclick="state.onboardingStep = 2; render();" class="py-3.5 px-4 rounded-2xl bg-stone-100 text-stone-600 font-black text-sm active:scale-95">Atrás</button>
+                                    <button onclick="nextOnboardingStep(3)" class="flex-1 py-3.5 rounded-2xl bg-stone-800 text-white font-black text-sm shadow-md active:scale-95 transition-transform">Ver mi Plan</button>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        ${step === 4 ? `
+                            <div class="flex flex-col gap-4 smooth-enter text-center">
+                                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-1">${Icons.Sparkles}</div>
+                                <div>
+                                    <h2 class="text-2xl font-black text-stone-800">¡Plan de ${computed.goalName}!</h2>
+                                    <p class="text-xs font-bold text-stone-500 mt-1">Calculado especialmente para ti.</p>
+                                </div>
+                                <div class="grid grid-cols-3 gap-2 my-2">
+                                    <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100"><span class="text-2xl font-black text-rose-500">${computed.p}g</span><span class="text-[10px] font-black text-rose-400 block uppercase">Proteína</span></div>
+                                    <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100"><span class="text-2xl font-black text-amber-500">${computed.c}g</span><span class="text-[10px] font-black text-amber-400 block uppercase">Carbos</span></div>
+                                    <div class="bg-teal-50 p-3 rounded-2xl border border-teal-100"><span class="text-2xl font-black text-teal-600">${computed.f}g</span><span class="text-[10px] font-black text-teal-400 block uppercase">Grasa</span></div>
+                                </div>
+                                <div class="bg-stone-50 p-3 rounded-2xl text-xs font-bold text-stone-500">Gasto / Ref. diaria: <strong class="text-stone-700">${computed.cals} kcal</strong></div>
+                                <button onclick="finishOnboarding(${computed.p}, ${computed.c}, ${computed.f})" class="w-full py-4 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform mt-2">¡Comenzar a Registrar! 🚀</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function nextOnboardingStep(currentStep) {
+            if (currentStep === 1) {
+                state.tempOnboarding.name = (document.getElementById('ob_name')?.value || '').trim();
+                state.onboardingStep = 2;
+            } else if (currentStep === 2) {
+                state.tempOnboarding.weight = document.getElementById('ob_weight')?.value || '';
+                state.tempOnboarding.height = document.getElementById('ob_height')?.value || '';
+                state.onboardingStep = 3;
+            } else if (currentStep === 3) {
+                state.tempOnboarding.age = document.getElementById('ob_age')?.value || '';
+                state.tempOnboarding.activity = document.getElementById('ob_activity')?.value || '1.375';
+                state.tempOnboarding.goal = document.getElementById('ob_goal')?.value || 'bulk_clean';
+                state.onboardingStep = 4;
+            }
+            render();
+        }
+
+        function skipOnboarding() {
+            localStorage.setItem('mt_onboarding_completed', 'true');
+            state.modal = null;
+            render();
+        }
+
+        function finishOnboarding(p, c, f) {
+            localStorage.setItem('mt_onboarding_completed', 'true');
+            state.settings.profile.name = state.tempOnboarding.name;
+            state.settings.profile.weight = state.tempOnboarding.weight;
+            state.settings.profile.height = state.tempOnboarding.height;
+            state.settings.profile.age = state.tempOnboarding.age;
+            state.settings.profile.activity = state.tempOnboarding.activity;
+            state.settings.profile.goal = state.tempOnboarding.goal;
+            state.settings.goals.p = p;
+            state.settings.goals.c = c;
+            state.settings.goals.f = f;
+            saveState();
+            state.modal = null;
+            render();
+        }
+
+        // --- CÁLCULO DE METAS EN AJUSTES (SIN DESTRUIR EL FORMULARIO) ---
+        let currentSuggestionData = null;
+        function calculateSettingsMagicGoals() {
+            const w = document.getElementById('set_weight')?.value;
+            const h = document.getElementById('set_height')?.value;
+            const a = document.getElementById('set_age')?.value;
+            const act = document.getElementById('set_activity')?.value;
+            const goal = document.getElementById('set_goal')?.value;
+
+            if (parseFloat(w) > 0 && parseFloat(h) > 0 && parseFloat(a) > 0) {
+                const computed = computeMacrosEngine(w, h, a, act, goal);
+                currentSuggestionData = computed;
+
+                const box = document.getElementById('settings_suggestion_box');
+                if (box) {
+                    box.innerHTML = `
+                        <div class="bg-emerald-50 p-4 rounded-3xl border border-emerald-200 mb-3 smooth-enter">
+                            <span class="block text-sm font-black text-emerald-900 text-center">¡Plan de ${computed.goalName}!</span>
+                            <div class="grid grid-cols-3 gap-2 text-center my-3">
+                                <div>
+                                    <div class="text-2xl font-black text-rose-500">${computed.p}g</div>
+                                    <div class="text-[10px] font-bold text-rose-400 uppercase">Proteína</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-amber-500">${computed.c}g</div>
+                                    <div class="text-[10px] font-bold text-amber-400 uppercase">Carbos</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-black text-teal-600">${computed.f}g</div>
+                                    <div class="text-[10px] font-bold text-teal-400 uppercase">Grasa</div>
+                                </div>
+                            </div>
+                            <div class="text-xs font-bold text-emerald-700 text-center mb-3">Gasto / Ref: ${computed.cals} kcal diarias</div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="document.getElementById('settings_suggestion_box').classList.add('hidden')" class="flex-1 py-2 bg-white text-stone-500 rounded-xl font-bold text-xs border border-stone-200 active:scale-95">Descartar</button>
+                                <button type="button" onclick="applySettingsSuggestion()" class="flex-1 py-2 rounded-xl bg-emerald-500 text-white font-black text-xs shadow-md active:scale-95">¡Aplicar Metas!</button>
+                            </div>
+                        </div>
+                    `;
+                    box.classList.remove('hidden');
+                }
+            } else {
+                showCustomToast("Completa peso, altura y edad en tu perfil.");
+            }
+        }
+
+        function applySettingsSuggestion() {
+            if (currentSuggestionData) {
+                const { p, c, f } = currentSuggestionData;
+                const inpP = document.getElementById('set_goal_p');
+                const inpC = document.getElementById('set_goal_c');
+                const inpF = document.getElementById('set_goal_f');
+                if (inpP) inpP.value = p;
+                if (inpC) inpC.value = c;
+                if (inpF) inpF.value = f;
+                
+                const box = document.getElementById('settings_suggestion_box');
+                if (box) box.classList.add('hidden');
+                showCustomToast("¡Metas aplicadas a los campos!");
+            }
+        }
+
+        function renderSettingsModal() {
+            const { settings } = state;
+            return `
+                <div class="fixed inset-0 z-[100] flex justify-center bg-stone-900/40 backdrop-blur-sm">
+                    <div class="w-full max-w-md h-full bg-stone-50 flex flex-col smooth-enter relative shadow-2xl border-x border-stone-200">
+                        <div class="flex justify-between items-center px-5 py-4 bg-white border-b border-stone-200 shadow-sm pt-[max(1rem,env(safe-area-inset-top))]">
+                            <h2 class="text-xl font-black text-stone-800">Ajustes & Metas</h2>
+                            <button onclick="closeModal()" class="p-2 text-stone-400 bg-stone-100 rounded-full">${Icons.X}</button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto p-5 pb-32 space-y-6">
+                            
+                            <!-- SECCIÓN IA -->
+                            <section>
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest flex items-center gap-1.5">${Icons.Cpu} Conexión IA (Gemini)</h3>
+                                    <button onclick="openModal('modelSpecs')" class="text-[11px] font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full flex items-center gap-1">${Icons.Info} Info Cuotas</button>
+                                </div>
+                                <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm space-y-3">
+                                    <div>
+                                        <label class="text-stone-500 font-bold text-xs block mb-1">Tu API Key secreta:</label>
+                                        <input type="password" id="set_apikey" value="${settings.geminiApiKey}" class="w-full bg-stone-50 rounded-xl p-3 font-bold text-stone-700 outline-none text-sm" placeholder="AIzaSy...">
+                                    </div>
+                                    <div>
+                                        <label class="text-stone-500 font-bold text-xs block mb-1">Modelo Seleccionado:</label>
+                                        <input type="text" id="set_model" value="${settings.geminiModel}" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-stone-700 outline-none text-xs mb-2">
+                                        
+                                        <div class="flex flex-col gap-1.5">
+                                            <button type="button" onclick="selectModelPreset('gemini-3.5-flash-lite')" class="p-2.5 rounded-xl border text-left flex items-center justify-between bg-stone-50 hover:bg-indigo-50/60 active:scale-[0.98] transition-all">
+                                                <div>
+                                                    <span class="text-xs font-black block text-stone-800">1. Gemini 3.5 Flash Lite</span>
+                                                    <span class="text-[10px] text-stone-400 font-bold">Principal / Diario (15 RPM / 500 RPD)</span>
+                                                </div>
+                                                <span class="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Recomendado</span>
+                                            </button>
+
+                                            <button type="button" onclick="selectModelPreset('gemini-3.7-flash')" class="p-2.5 rounded-xl border text-left flex items-center justify-between bg-stone-50 hover:bg-amber-50/60 active:scale-[0.98] transition-all">
+                                                <div>
+                                                    <span class="text-xs font-black block text-stone-800">2. Gemini 3.7 Flash</span>
+                                                    <span class="text-[10px] text-stone-400 font-bold">Máxima Precisión Visual (5 RPM / 20 RPD)</span>
+                                                </div>
+                                                <span class="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Ultra Preciso</span>
+                                            </button>
+
+                                            <button type="button" onclick="selectModelPreset('gemini-3.1-flash-lite')" class="p-2.5 rounded-xl border text-left flex items-center justify-between bg-stone-50 hover:bg-stone-100 active:scale-[0.98] transition-all">
+                                                <div>
+                                                    <span class="text-xs font-black block text-stone-800">3. Gemini 3.1 Flash Lite</span>
+                                                    <span class="text-[10px] text-stone-400 font-bold">Respaldo / Fallback (15 RPM / 500 RPD)</span>
+                                                </div>
+                                                <span class="text-[10px] font-black bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full">Backup</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- PERFIL -->
+                            <section>
+                                <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">${Icons.User} Tu Perfil Físico</h3>
+                                <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm space-y-3">
+                                    <div><label class="text-stone-500 font-bold text-xs block mb-1">Nombre</label><input type="text" id="set_name" value="${settings.profile.name}" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-sm" placeholder="Tu nombre..."></div>
+                                    <div class="flex gap-2">
+                                        <div class="flex-1"><label class="text-stone-500 font-bold text-xs block mb-1">Peso (kg)</label><input type="number" id="set_weight" value="${settings.profile.weight}" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-center text-sm" placeholder="Ej: 75"></div>
+                                        <div class="flex-1"><label class="text-stone-500 font-bold text-xs block mb-1">Altura (cm)</label><input type="number" id="set_height" value="${settings.profile.height}" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-center text-sm" placeholder="Ej: 178"></div>
+                                        <div class="flex-1"><label class="text-stone-500 font-bold text-xs block mb-1">Edad</label><input type="number" id="set_age" value="${settings.profile.age}" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-center text-sm" placeholder="Ej: 24"></div>
+                                    </div>
+                                    <div>
+                                        <label class="text-stone-500 font-bold text-xs block mb-1">Objetivo Nutricional</label>
+                                        <select id="set_goal" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-stone-700 text-xs outline-none">
+                                            <option value="bulk_clean" ${settings.profile.goal === 'bulk_clean' || !settings.profile.goal ? 'selected' : ''}>🌱 Volumen Limpio (+ Superávit moderado)</option>
+                                            <option value="bulk_normal" ${settings.profile.goal === 'bulk_normal' ? 'selected' : ''}>⚡ Volumen Normal (+ Superávit clásico)</option>
+                                            <option value="cut" ${settings.profile.goal === 'cut' ? 'selected' : ''}>🔥 Definición (- Déficit controlado)</option>
+                                            <option value="recomp" ${settings.profile.goal === 'recomp' ? 'selected' : ''}>🔄 Recomposición (Mantenimiento + Alta Pro)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-stone-500 font-bold text-xs block mb-1">Nivel de Actividad</label>
+                                        <select id="set_activity" class="w-full bg-stone-50 rounded-xl p-2.5 font-bold text-stone-700 text-xs outline-none">
+                                            <option value="1.2" ${settings.profile.activity === '1.2' ? 'selected' : ''}>Sedentario (Poco o nada)</option>
+                                            <option value="1.375" ${settings.profile.activity === '1.375' || !settings.profile.activity ? 'selected' : ''}>Ligero (1-2 días por semana)</option>
+                                            <option value="1.55" ${settings.profile.activity === '1.55' ? 'selected' : ''}>Moderado (3-5 días por semana)</option>
+                                            <option value="1.725" ${settings.profile.activity === '1.725' ? 'selected' : ''}>Intenso (6-7 días por semana)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- METAS DIRECTAS -->
+                            <section>
+                                <div class="flex justify-between items-center mb-2">
+                                    <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest flex items-center gap-1.5">${Icons.Target} Metas Diarias</h3>
+                                    <button type="button" onclick="calculateSettingsMagicGoals()" class="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full flex items-center gap-1 active:scale-95 transition-transform">
+                                        ${Icons.Sparkles} Auto-calcular
+                                    </button>
+                                </div>
+
+                                <div id="settings_suggestion_box" class="hidden"></div>
+
+                                <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm grid grid-cols-3 gap-2">
+                                    <div><label class="text-rose-500 font-black text-xs block mb-1">Pro (g)</label><input type="number" id="set_goal_p" value="${settings.goals.p}" class="w-full bg-rose-50 rounded-xl p-2.5 text-xl font-black text-rose-600 text-center"></div>
+                                    <div><label class="text-amber-500 font-black text-xs block mb-1">Carb (g)</label><input type="number" id="set_goal_c" value="${settings.goals.c}" class="w-full bg-amber-50 rounded-xl p-2.5 text-xl font-black text-amber-500 text-center"></div>
+                                    <div><label class="text-teal-600 font-black text-xs block mb-1">Grasa (g)</label><input type="number" id="set_goal_f" value="${settings.goals.f}" class="w-full bg-teal-50 rounded-xl p-2.5 text-xl font-black text-teal-600 text-center"></div>
+                                </div>
+                            </section>
+
+                            <!-- BACKUP -->
+                            <section>
+                                <h3 class="text-xs font-black text-stone-400 uppercase tracking-widest mb-2">Copia de Seguridad</h3>
+                                <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm flex gap-3">
+                                    <button onclick="exportBackupData()" class="flex-1 py-3 bg-stone-100 rounded-2xl font-black text-xs text-stone-700 flex items-center justify-center gap-1.5">${Icons.Download} Exportar JSON</button>
+                                    <button onclick="document.getElementById('import_file').click()" class="flex-1 py-3 bg-stone-100 rounded-2xl font-black text-xs text-stone-700 flex items-center justify-center gap-1.5">${Icons.Upload} Importar JSON</button>
+                                    <input type="file" id="import_file" onchange="importBackupData(event)" accept=".json" class="hidden">
+                                </div>
+                            </section>
+
+                            <!-- CRÉDITOS -->
+                            <section class="pt-4 pb-2 text-center">
+                                <div class="inline-flex items-center justify-center gap-1.5 text-stone-400">
+                                    <span class="text-xs font-extrabold uppercase tracking-widest">Creado por</span>
+                                    <span class="bg-stone-200 text-stone-600 px-2 py-1 rounded-md text-xs font-black">Samuel Guerra</span>
+                                </div>
+                                <p class="text-[10px] font-bold text-stone-400 mt-2 tracking-widest uppercase">MacroTracker v1.5.0</p>
+                            </section>
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full p-4 bg-stone-50 border-t border-stone-200 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                            <button onclick="saveSettingsForm()" class="w-full py-3.5 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95">Guardar Cambios</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderResetConfirmModal() {
+            return `
+                <div class="fixed inset-0 z-[100] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center text-center smooth-enter">
+                        <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mb-4">${Icons.Reset}</div>
+                        <h3 class="text-xl font-black text-stone-800 mb-2">¿Reiniciar este día?</h3>
+                        <p class="text-stone-500 font-semibold mb-6 text-sm">Se borrarán todos los macros de este día.</p>
+                        <div class="flex w-full gap-3">
+                            <button onclick="closeModal()" class="flex-1 py-3 rounded-xl bg-stone-100 text-stone-600 font-bold">Cancelar</button>
+                            <button onclick="resetCurrentDay()" class="flex-1 py-3 rounded-xl bg-red-500 text-white font-bold shadow-lg">Sí, borrar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- CALENDARIO (LUNES A DOMINGO) ---
+        function renderCalendarModal() {
+            const { goals } = state.settings;
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            const year = state.calendarViewDate.getFullYear();
+            const month = state.calendarViewDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+            const offset = firstDay === 0 ? 6 : firstDay - 1;
+
+            const getDayTotals = (dStr) => {
+                const dData = state.history[dStr];
+                if (!dData) return { p: 0, c: 0, f: 0, met: false };
+                let p = 0, c = 0, f = 0;
+                Object.values(dData).forEach(m => { p += Number(m.p)||0; c += Number(m.c)||0; f += Number(m.f)||0; });
+                return { p, c, f, met: p >= goals.p && c >= goals.c && f >= goals.f };
+            };
+
+            const getMondayToSundayWeek = (refDateStr = state.currentDate) => {
+                const [y, m, d] = refDateStr.split('-');
+                const curr = new Date(y, m - 1, d);
+                const dayOfWeek = curr.getDay();
+                const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+                
+                const monday = new Date(curr);
+                monday.setDate(curr.getDate() + diffToMonday);
+
+                const week = [];
+                const dayLabels = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(monday);
+                    dayDate.setDate(monday.getDate() + i);
+                    const dStr = getLocalDateStr(dayDate);
+                    const isToday = dStr === getLocalDateStr();
+                    const isSelected = dStr === state.currentDate;
+                    week.push({
+                        dateStr: dStr,
+                        label: dayLabels[i],
+                        dayNum: dayDate.getDate(),
+                        isToday,
+                        isSelected,
+                        ...getDayTotals(dStr)
+                    });
+                }
+                return week;
+            };
+
+            const weekData = getMondayToSundayWeek();
+            const daysMet = weekData.filter(d => d.met).length;
+
+            return `
+                <div class="fixed inset-0 z-[100] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl p-5 w-full max-w-sm shadow-2xl flex flex-col smooth-enter">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex bg-stone-100 p-1 rounded-xl gap-1">
+                                <button onclick="setCalendarMode('calendar')" class="px-3 py-1 text-xs font-black rounded-lg ${state.calendarViewMode === 'calendar' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500'}">Calendario</button>
+                                <button onclick="setCalendarMode('weekly')" class="px-3 py-1 text-xs font-black rounded-lg ${state.calendarViewMode === 'weekly' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-500'}">Semana (L-D)</button>
+                            </div>
+                            <button onclick="closeModal()" class="p-1.5 text-stone-400 bg-stone-100 rounded-full">${Icons.X}</button>
+                        </div>
+
+                        ${state.calendarViewMode === 'calendar' ? `
+                            <div class="flex justify-between items-center mb-3 bg-stone-50 rounded-2xl p-2 border border-stone-100">
+                                <button onclick="shiftCalendarMonth(-1)" class="p-1.5 hover:bg-stone-200 rounded-xl text-stone-500">${Icons.Left}</button>
+                                <span class="font-extrabold text-stone-700 capitalize text-sm">${monthNames[month]} ${year}</span>
+                                <button onclick="shiftCalendarMonth(1)" class="p-1.5 hover:bg-stone-200 rounded-xl text-stone-500">${Icons.Right}</button>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                                ${['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(d => `<div class="text-[10px] font-black text-stone-400">${d}</div>`).join('')}
+                                ${Array.from({ length: offset }).map(() => `<div class="h-9"></div>`).join('')}
+                                ${Array.from({ length: daysInMonth }).map((_, i) => {
+                                    const dNum = i + 1;
+                                    const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
+                                    const isSel = dStr === state.currentDate;
+                                    const isMet = getDayTotals(dStr).met;
+                                    return `
+                                        <button onclick="selectDate('${dStr}')" class="h-9 rounded-xl relative flex flex-col items-center justify-center font-bold text-xs ${isSel ? 'bg-stone-800 text-white shadow-md' : 'text-stone-600 hover:bg-stone-100'}">
+                                            <span class="z-10">${dNum}</span>
+                                            ${isMet ? `<div class="absolute bottom-1 w-1.5 h-1.5 rounded-full ${isSel ? 'bg-emerald-300' : 'bg-emerald-500'}"></div>` : ''}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        ` : `
+                            <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100 mb-3">
+                                <div class="flex justify-between items-center mb-3">
+                                    <div>
+                                        <span class="text-xs font-extrabold text-stone-600 block">Semana Actual (Lunes a Domingo)</span>
+                                        <span class="text-[10px] text-stone-400 font-bold">${weekData[0].dayNum} ${monthNames[month]} - ${weekData[6].dayNum} ${monthNames[month]}</span>
+                                    </div>
+                                    <span class="text-xs font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">${daysMet} / 7 días</span>
+                                </div>
+                                <div class="flex justify-between items-end h-24 gap-1.5 pt-2">
+                                    ${weekData.map(d => `
+                                        <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                                            <div onclick="selectDate('${d.dateStr}')" class="w-full rounded-lg cursor-pointer transition-all ${d.isSelected ? 'ring-2 ring-stone-800' : ''} ${d.met ? 'bg-emerald-500' : 'bg-stone-200'}" style="height: ${Math.min(100, Math.max(15, (d.p / (goals.p || 1)) * 100))}%" title="${d.label} (${d.dateStr}): ${d.p}P"></div>
+                                            <span class="text-[10px] font-black ${d.isSelected ? 'text-stone-900 font-black' : (d.isToday ? 'text-indigo-600 font-black' : 'text-stone-400')}">${d.label}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderModelSpecsModal() {
+            return `
+                <div class="fixed inset-0 z-[110] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl p-5 w-full max-w-sm shadow-2xl flex flex-col max-h-[85vh] overflow-y-auto smooth-enter">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-base font-black text-stone-800 flex items-center gap-1.5">${Icons.Cpu} Comparativa de Modelos IA</h3>
+                            <button onclick="openModal('settings')" class="p-1.5 text-stone-400 bg-stone-100 rounded-full">${Icons.X}</button>
+                        </div>
+                        <div class="space-y-3 text-xs">
+                            <div class="bg-indigo-50/70 p-3 rounded-2xl border border-indigo-100">
+                                <div class="flex justify-between items-center mb-1"><span class="font-black text-indigo-900">1. Gemini 3.5 Flash Lite</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-extrabold text-[10px]">Principal</span></div>
+                                <p class="font-bold text-stone-600 mb-1"><strong>Cuota gratuita:</strong> 15 RPM / 500 RPD.</p>
+                                <p class="text-stone-500 font-semibold leading-relaxed"><strong>Por qué elegirlo:</strong> Equilibrio óptimo entre visión multimodal y rapidez. Su límite de 500 peticiones/día permite un uso diario constante.</p>
+                            </div>
+                            <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-100">
+                                <div class="flex justify-between items-center mb-1"><span class="font-black text-amber-900">2. Gemini 3.7 Flash</span><span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md font-extrabold text-[10px]">Ultra Preciso</span></div>
+                                <p class="font-bold text-stone-600 mb-1"><strong>Cuota gratuita:</strong> 5 RPM / 20 RPD.</p>
+                                <p class="text-stone-500 font-semibold leading-relaxed"><strong>Por qué elegirlo:</strong> Máximo razonamiento visual para fotos complejas y estimación fina de porciones.</p>
+                            </div>
+                            <div class="bg-stone-100/80 p-3 rounded-2xl border border-stone-200">
+                                <div class="flex justify-between items-center mb-1"><span class="font-black text-stone-800">3. Gemini 3.1 Flash Lite</span><span class="bg-stone-200 text-stone-700 px-2 py-0.5 rounded-md font-extrabold text-[10px]">Respaldo</span></div>
+                                <p class="font-bold text-stone-600 mb-1"><strong>Cuota gratuita:</strong> 15 RPM / 500 RPD.</p>
+                                <p class="text-stone-500 font-semibold leading-relaxed"><strong>Por qué elegirlo:</strong> Mínima latencia y soporte multimodal completo para balancear carga.</p>
+                            </div>
+                        </div>
+                        <button onclick="openModal('settings')" class="mt-4 w-full py-3 bg-stone-800 text-white font-black text-xs rounded-xl">Volver a Ajustes</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAIHubModal() {
+            const { aiHubTab, aiLoading, aiResult, advisorAdvice, advisorError, selectedPhotoPreview } = state;
+            const meals = state.settings.templates.map(t => state.history[state.currentDate]?.[t.id] || {});
+            const totalP = meals.reduce((acc, m) => acc + (Number(m.p)||0), 0);
+            const totalC = meals.reduce((acc, m) => acc + (Number(m.c)||0), 0);
+            const totalF = meals.reduce((acc, m) => acc + (Number(m.f)||0), 0);
+            const remP = Math.max(0, state.settings.goals.p - totalP);
+            const remC = Math.max(0, state.settings.goals.c - totalC);
+            const remF = Math.max(0, state.settings.goals.f - totalF);
+
+            return `
+                <div class="fixed inset-0 z-[100] flex justify-center bg-stone-900/40 backdrop-blur-sm">
+                    <div class="w-full max-w-md h-full bg-stone-50 flex flex-col smooth-enter relative shadow-2xl border-x border-stone-200 pt-[max(1rem,env(safe-area-inset-top))]">
+                        
+                        <div class="px-4 pt-2 pb-3 border-b border-stone-200 bg-white flex flex-col gap-3 shrink-0">
+                            <div class="flex justify-between items-center">
+                                <h2 class="text-lg font-black text-stone-800 flex items-center gap-1.5">${Icons.Sparkles} Asistente Nutricional IA</h2>
+                                <button onclick="closeModal()" class="p-1.5 text-stone-400 bg-stone-100 rounded-full hover:bg-stone-200">${Icons.X}</button>
+                            </div>
+                            <div class="grid grid-cols-3 bg-stone-100 p-1 rounded-2xl gap-1">
+                                <button onclick="setAITab('scan')" class="py-1.5 rounded-xl text-xs font-black transition-all ${aiHubTab === 'scan' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}">Escanear</button>
+                                <button onclick="setAITab('solver')" class="py-1.5 rounded-xl text-xs font-black transition-all ${aiHubTab === 'solver' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}">Calcular Gramos</button>
+                                <button onclick="setAITab('advisor')" class="py-1.5 rounded-xl text-xs font-black transition-all ${aiHubTab === 'advisor' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-500'}">Asesor</button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                            ${aiLoading ? `
+                                <div class="my-auto flex flex-col items-center justify-center p-8 bg-white rounded-3xl border border-stone-200 shadow-sm smooth-enter text-center gap-4">
+                                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white pulse-glow shadow-lg shadow-indigo-500/30">
+                                        ${Icons.Sparkles}
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-black text-stone-800 mb-1">Analizando con Gemini...</h3>
+                                        <p class="text-xs font-bold text-stone-400">Calculando proteínas, carbohidratos y grasas</p>
+                                    </div>
+                                    <div class="w-48 bg-stone-100 rounded-full h-1.5 overflow-hidden mt-2">
+                                        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-full rounded-full w-full animate-pulse"></div>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            ${!aiLoading && aiResult ? `
+                                <div class="bg-white rounded-3xl p-5 border border-stone-200 shadow-sm space-y-4 smooth-enter">
+                                    <h3 class="text-lg font-black text-stone-800 text-center">
+                                        ${aiResult.hasErrors ? '⚠️ Diagnóstico del Sistema' : '¡Resultado Estimado! ✨'}
+                                    </h3>
+
+                                    ${!aiResult.hasErrors ? `
+                                        <div class="grid grid-cols-3 gap-2 text-center">
+                                            <div class="bg-rose-50 p-3 rounded-2xl border border-rose-100"><span class="text-2xl font-black text-rose-500">${aiResult.proteinas}</span><span class="text-[10px] font-black text-rose-400 block uppercase">PRO (G)</span></div>
+                                            <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100"><span class="text-2xl font-black text-amber-500">${aiResult.carbohidratos}</span><span class="text-[10px] font-black text-amber-400 block uppercase">CARB (G)</span></div>
+                                            <div class="bg-teal-50 p-3 rounded-2xl border border-teal-100"><span class="text-2xl font-black text-teal-600">${aiResult.grasas}</span><span class="text-[10px] font-black text-teal-400 block uppercase">GRASA (G)</span></div>
+                                        </div>
+                                    ` : ''}
+
+                                    <div class="p-4 rounded-2xl text-xs font-bold ${aiResult.hasErrors ? 'bg-red-50 border border-red-200 text-red-600' : 'bg-stone-50 border border-stone-100 text-stone-600'}">
+                                        <span class="block text-[10px] font-black uppercase mb-1 ${aiResult.hasErrors ? 'text-red-400' : 'text-stone-400'}">
+                                            ${aiResult.hasErrors ? 'Mensaje de error / Google API:' : 'Detalle Nutricional:'}
+                                        </span>
+                                        ${aiResult.desglose}
+                                    </div>
+
+                                    ${!aiResult.hasErrors ? `
+                                        <button onclick="applyAIMacros(${aiResult.proteinas}, ${aiResult.carbohidratos}, ${aiResult.grasas})" class="w-full py-3.5 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform">Añadir a esta Comida</button>
+                                    ` : `
+                                        <button onclick="openModal('settings')" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-black text-xs shadow-md active:scale-95">Ir a Ajustes (Revisar API Key / Modelo)</button>
+                                    `}
+                                    <button onclick="resetAIHubForm()" class="w-full py-2.5 rounded-xl bg-stone-200 text-stone-600 font-extrabold text-xs active:scale-95 transition-transform">Hacer otra consulta</button>
+                                </div>
+                            ` : ''}
+
+                            ${!aiLoading && !aiResult ? `
+                                ${aiHubTab === 'scan' ? `
+                                    <div class="bg-white rounded-3xl border border-stone-200 p-4 shadow-sm space-y-3 smooth-enter">
+                                        <span class="text-xs font-black text-stone-400 uppercase tracking-widest block">1. Foto del Plato o Etiqueta (Opcional)</span>
+                                        
+                                        <div onclick="document.getElementById('ai_photo').click()" class="w-full h-32 rounded-2xl border-2 border-dashed border-stone-200 hover:border-indigo-300 bg-stone-50 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative transition-colors">
+                                            ${selectedPhotoPreview ? `
+                                                <img src="${selectedPhotoPreview}" class="w-full h-full object-cover">
+                                                <button onclick="event.stopPropagation(); clearSelectedPhoto();" class="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full">${Icons.X}</button>
+                                            ` : `
+                                                <div class="flex flex-col items-center gap-1.5 text-stone-400">
+                                                    ${Icons.Camera}
+                                                    <span class="text-xs font-bold">Tomar foto o subir imagen</span>
+                                                </div>
+                                            `}
+                                        </div>
+                                        <input type="file" id="ai_photo" accept="image/*" onchange="handlePhotoUpload(event)" class="hidden">
+
+                                        <span class="text-xs font-black text-stone-400 uppercase tracking-widest block pt-2">2. Descripción de los alimentos</span>
+                                        <textarea id="ai_query" placeholder="Ej: 180g pechuga de pollo, 200g arroz cocido y 10ml aceite de oliva..." class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3 text-sm font-bold h-24 outline-none focus:border-indigo-400 transition-colors resize-none"></textarea>
+                                        
+                                        <button onclick="runAIScan()" class="w-full py-3.5 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                            ${Icons.Sparkles} Analizar Macros
+                                        </button>
+                                    </div>
+                                ` : ''}
+
+                                ${aiHubTab === 'solver' ? `
+                                    <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm space-y-3 smooth-enter">
+                                        <span class="text-xs font-black text-stone-400 uppercase tracking-widest block">¿Qué alimento quieres comer?</span>
+                                        <input type="text" id="solver_food" placeholder="Ej: Avena, Pechuga de pollo, Aguacate..." class="w-full bg-stone-50 rounded-xl p-3 font-bold text-sm outline-none border border-stone-200 focus:border-indigo-400 transition-colors">
+                                        <span class="text-xs font-black text-stone-400 uppercase tracking-widest block pt-2">¿Cuántos gramos meta quieres?</span>
+                                        <div class="flex gap-2">
+                                            <input type="number" id="solver_amount" placeholder="Ej: 35" class="flex-1 bg-stone-50 rounded-xl p-3 font-black text-sm text-center border border-stone-200 focus:border-indigo-400 transition-colors">
+                                            <select id="solver_macro" class="bg-stone-100 rounded-xl px-3 font-black text-xs text-stone-700 outline-none">
+                                                <option value="Proteína">Proteína (P)</option>
+                                                <option value="Carbohidratos">Carbos (C)</option>
+                                                <option value="Grasa">Grasa (G)</option>
+                                            </select>
+                                        </div>
+                                        <button onclick="runAISolver()" class="w-full py-3.5 rounded-2xl bg-stone-800 text-white font-black text-base shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                            ${Icons.Scale} Calcular Porción Exacta
+                                        </button>
+                                    </div>
+                                ` : ''}
+
+                                ${aiHubTab === 'advisor' ? `
+                                    <div class="bg-white p-4 rounded-3xl border border-stone-200 shadow-sm text-center smooth-enter">
+                                        <span class="text-xs font-black text-stone-400 uppercase tracking-widest block mb-2">Macros Restantes Hoy</span>
+                                        <div class="flex justify-center gap-4 my-2">
+                                            <span class="text-sm font-black text-rose-500">${remP}g Pro</span>
+                                            <span class="text-sm font-black text-amber-500">${remC}g Carb</span>
+                                            <span class="text-sm font-black text-teal-600">${remF}g Grasa</span>
+                                        </div>
+                                        <button onclick="runAIAdvisor(${remP}, ${remC}, ${remF})" class="mt-3 w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-black text-xs shadow-md active:scale-95 transition-transform flex items-center justify-center gap-1.5">
+                                            ${Icons.Sparkles} Sugerirme Comidas
+                                        </button>
+                                    </div>
+
+                                    ${advisorError ? `
+                                        <div class="bg-red-50 p-4 rounded-2xl border border-red-200 text-left smooth-enter space-y-2">
+                                            <span class="text-[10px] font-black text-red-500 uppercase block">Error en consulta:</span>
+                                            <span class="text-xs font-bold text-red-600 block">${advisorError}</span>
+                                            <button onclick="openModal('settings')" class="w-full py-2 bg-red-600 text-white rounded-xl font-black text-xs shadow-sm">Abrir Ajustes</button>
+                                        </div>
+                                    ` : ''}
+
+                                    ${advisorAdvice ? `
+                                        <div class="space-y-2 smooth-enter">
+                                            ${advisorAdvice.map(op => `
+                                                <div class="bg-white p-3.5 rounded-2xl border border-stone-200 shadow-sm flex flex-col gap-1">
+                                                    <div class="flex justify-between items-start"><span class="font-black text-xs text-stone-800">${op.nombre}</span><span class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${op.macros}</span></div>
+                                                    <span class="text-xs text-stone-500 font-bold">${op.descripcion}</span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : ''}
+                                ` : ''}
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- ACCIONES DE ESTADO ---
+        function openModal(modalName) { state.modal = modalName; render(); }
+        function closeModal() { state.modal = null; render(); }
+        function setCalendarMode(mode) { state.calendarViewMode = mode; render(); }
+        
+        // Animación solo al cambiar de pestaña
+        function setAITab(tab) { 
+            if (state.aiHubTab === tab && !state.aiResult && !state.advisorError) return;
+            state.aiHubTab = tab; 
+            state.aiResult = null; 
+            state.advisorError = null; 
+            render(); 
+        }
+        
+        function resetAIHubForm() {
+            state.aiResult = null;
+            state.selectedPhotoPreview = null;
+            state.selectedPhotoBase64 = null;
+            render();
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                state.selectedPhotoPreview = URL.createObjectURL(file);
+                const reader = new FileReader();
+                reader.onload = () => {
+                    state.selectedPhotoBase64 = reader.result.split(',')[1];
+                    render();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearSelectedPhoto() {
+            state.selectedPhotoPreview = null;
+            state.selectedPhotoBase64 = null;
+            render();
+        }
+
+        function setActiveMeal(id) { state.activeMealId = id; render(); }
+
+        function selectModelPreset(modelStr) {
+            const input = document.getElementById('set_model');
+            if (input) input.value = modelStr;
+        }
+
+        function changeDate(days) {
+            state.slideDir = days > 0 ? 'next' : 'prev';
+            const [y, m, d] = state.currentDate.split('-');
+            const dateObj = new Date(y, m - 1, d);
+            dateObj.setDate(dateObj.getDate() + days);
+            state.currentDate = getLocalDateStr(dateObj);
+            render();
+        }
+
+        function jumpToToday() {
+            const today = getLocalDateStr();
+            if (state.currentDate === today) return;
+            state.slideDir = state.currentDate < today ? 'next' : 'prev';
+            state.currentDate = today;
+            render();
+        }
+
+        function selectDate(dStr) {
+            state.slideDir = dStr > state.currentDate ? 'next' : 'prev';
+            state.currentDate = dStr;
+            closeModal();
+        }
+
+        function shiftCalendarMonth(offset) {
+            const d = new Date(state.calendarViewDate);
+            d.setMonth(d.getMonth() + offset);
+            state.calendarViewDate = d;
+            render();
+        }
+
+        function updateMealMacro(type, val) {
+            const dayData = state.history[state.currentDate] || {};
+            const mealData = dayData[state.activeMealId] || { p: '', c: '', f: '', completed: false };
+            mealData[type] = val === '' ? '' : parseInt(val);
+            dayData[state.activeMealId] = mealData;
+            state.history[state.currentDate] = dayData;
+            saveState();
+            render();
+        }
+
+        function adjustMacro(type, delta) {
+            const dayData = state.history[state.currentDate] || {};
+            const mealData = dayData[state.activeMealId] || { p: '', c: '', f: '', completed: false };
+            mealData[type] = Math.max(0, (Number(mealData[type]) || 0) + delta);
+            dayData[state.activeMealId] = mealData;
+            state.history[state.currentDate] = dayData;
+            saveState();
+            render();
+        }
+
+        function toggleMealComplete() {
+            const dayData = state.history[state.currentDate] || {};
+            const mealData = dayData[state.activeMealId] || { p: '', c: '', f: '', completed: false };
+            mealData.completed = !mealData.completed;
+            dayData[state.activeMealId] = mealData;
+            state.history[state.currentDate] = dayData;
+            saveState();
+            render();
+        }
+
+        function resetCurrentDay() {
+            delete state.history[state.currentDate];
+            saveState();
+            closeModal();
+        }
+
+        function saveSettingsForm() {
+            state.settings.geminiApiKey = document.getElementById('set_apikey').value.trim();
+            state.settings.geminiModel = document.getElementById('set_model').value.trim() || 'gemini-3.5-flash-lite';
+            state.settings.profile.name = document.getElementById('set_name').value.trim();
+            state.settings.profile.weight = document.getElementById('set_weight').value;
+            state.settings.profile.height = document.getElementById('set_height').value;
+            state.settings.profile.age = document.getElementById('set_age').value;
+            state.settings.profile.activity = document.getElementById('set_activity')?.value || '1.375';
+            state.settings.profile.goal = document.getElementById('set_goal')?.value || 'bulk_clean';
+            state.settings.goals.p = parseInt(document.getElementById('set_goal_p').value) || 140;
+            state.settings.goals.c = parseInt(document.getElementById('set_goal_c').value) || 280;
+            state.settings.goals.f = parseInt(document.getElementById('set_goal_f').value) || 65;
+            saveState();
+            closeModal();
+            showCustomToast("Ajustes guardados correctamente");
+        }
+
+        function exportBackupData() {
+            const data = { settings: state.settings, history: state.history, exportDate: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MacroTracker_Backup_${getLocalDateStr()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showCustomToast("Copia de seguridad exportada");
+        }
+
+        function importBackupData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed.settings && parsed.history) {
+                        state.settings = parsed.settings;
+                        state.history = parsed.history;
+                        saveState();
+                        closeModal();
+                        showCustomToast("¡Copia de seguridad restaurada! 🎉");
+                    }
+                } catch(err) {
+                    showCustomToast("Error al leer el archivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function applyAIMacros(p, c, f) {
+            const dayData = state.history[state.currentDate] || {};
+            const mealData = dayData[state.activeMealId] || { p: 0, c: 0, f: 0, completed: false };
+            mealData.p = (Number(mealData.p)||0) + p;
+            mealData.c = (Number(mealData.c)||0) + c;
+            mealData.f = (Number(mealData.f)||0) + f;
+            dayData[state.activeMealId] = mealData;
+            state.history[state.currentDate] = dayData;
+            saveState();
+            closeModal();
+            showCustomToast("Macros añadidos a la comida");
+        }
+
+        // --- LLAMADAS A GEMINI ---
+        async function callGeminiAPI(parts) {
+            const apiKey = state.settings.geminiApiKey;
+            if (!apiKey || apiKey.trim() === '') {
+                throw new Error("❌ ¡Falta la API Key! Ve a Ajustes (el engranaje arriba a la derecha), pega tu clave de Gemini y guarda los cambios.");
+            }
+            const model = state.settings.geminiModel || 'gemini-3.5-flash-lite';
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
+            let res;
+            try {
+                res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ role: 'user', parts }], generationConfig: { temperature: 0.1 } })
+                });
+            } catch(netErr) {
+                throw new Error("❌ Error de conexión: No se pudo contactar con los servidores de Google. Revisa tu conexión a internet.");
+            }
+
+            if (!res.ok) {
+                let errorMsg = "Error desconocido";
+                try {
+                    const errorData = await res.json();
+                    errorMsg = errorData.error?.message || errorMsg;
+                } catch(e) {}
+
+                if (res.status === 429 || errorMsg.includes("Quota") || errorMsg.includes("RESOURCE_EXHAUSTED")) {
+                    throw new Error("⏳ Límite de consultas superado (Cuota agotada en este modelo). Espera un momento o selecciona otro modelo en Ajustes.");
+                } else if (res.status === 404 || errorMsg.includes("not found") || errorMsg.includes("models/")) {
+                    throw new Error(`❌ El modelo "${model}" no fue encontrado en Google AI. Verifica el nombre o cámbialo en Ajustes.`);
+                } else if (res.status === 400 || errorMsg.includes("API_KEY_INVALID") || errorMsg.includes("API key not valid")) {
+                    throw new Error("❌ La clave API no es válida. Ve a Ajustes y asegúrate de haberla copiado correctamente.");
+                } else {
+                    throw new Error(`❌ Error devuelto por Google: ${errorMsg}`);
+                }
+            }
+
+            const data = await res.json();
+            try {
+                const text = data.candidates[0].content.parts[0].text;
+                return JSON.parse(text.replace(/```json/gi, '').replace(/```/g, '').trim());
+            } catch(parseErr) {
+                throw new Error("❌ Error procesando la respuesta de la IA. Por favor, reintenta la consulta.");
+            }
+        }
+
+        async function runAIScan() {
+            const query = (document.getElementById('ai_query')?.value || '').trim();
+            const photoBase64 = state.selectedPhotoBase64;
+            if (!query && !photoBase64) return;
+
+            state.aiLoading = true;
+            render();
+
+            try {
+                const parts = [{ text: `Eres un experto nutricionista deportivo. Analiza la comida descrita o mostrada en la foto. Calcula proteínas, carbohidratos y grasas netas en gramos. Devuelve ÚNICAMENTE este JSON: {"proteinas": (entero), "carbohidratos": (entero), "grasas": (entero), "desglose": "(resumen breve de alimentos)"}. Comida: ${query}` }];
+                if (photoBase64) {
+                    parts.push({ inlineData: { mimeType: "image/jpeg", data: photoBase64 } });
+                }
+                const result = await callGeminiAPI(parts);
+                state.aiResult = { ...result, hasErrors: false };
+            } catch(e) {
+                state.aiResult = { proteinas: 0, carbohidratos: 0, grasas: 0, desglose: e.message, hasErrors: true };
+            } finally {
+                state.aiLoading = false;
+                render();
+            }
+        }
+
+        async function runAISolver() {
+            const food = (document.getElementById('solver_food')?.value || '').trim();
+            const amount = document.getElementById('solver_amount')?.value;
+            const macro = document.getElementById('solver_macro')?.value;
+            if (!food || !amount) return;
+
+            state.aiLoading = true;
+            render();
+
+            try {
+                const parts = [{ text: `Calcula cuántos GRAMOS de "${food}" necesito para obtener exactamente ${amount}g de ${macro}. Devuelve ÚNICAMENTE este JSON: {"proteinas": (entero en esa porción), "carbohidratos": (entero en esa porción), "grasas": (entero en esa porción), "desglose": "(Ej: Para 30g de proteína necesitas aprox 140g de pechuga cocida)"}` }];
+                const result = await callGeminiAPI(parts);
+                state.aiResult = { ...result, hasErrors: false };
+            } catch(e) {
+                state.aiResult = { proteinas: 0, carbohidratos: 0, grasas: 0, desglose: e.message, hasErrors: true };
+            } finally {
+                state.aiLoading = false;
+                render();
+            }
+        }
+
+        async function runAIAdvisor(remP, remC, remF) {
+            state.aiLoading = true;
+            state.advisorAdvice = null;
+            state.advisorError = null;
+            render();
+            try {
+                const parts = [{ text: `Faltan exactamente: ${remP}g Proteína, ${remC}g Carbos y ${remF}g Grasa para cumplir el objetivo del día. Dame 3 opciones de comidas para cerrar el día. Devuelve ÚNICAMENTE este JSON: {"opciones": [{"nombre": "(Título corto)", "descripcion": "(alimentos)", "macros": "(XXP / XXC / XXG)"}]}` }];
+                const result = await callGeminiAPI(parts);
+                state.advisorAdvice = result.opciones || [];
+            } catch(e) {
+                state.advisorError = e.message;
+            } finally {
+                state.aiLoading = false;
+                render();
+            }
+        }
+
+        // --- GESTIÓN DE SWIPE TÁCTIL ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            if (state.modal) return; // No deslizar si hay modales abiertos
+            if (!touchStartX || !touchStartY) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = Math.abs(touchStartY - touchEndY);
+            
+            // Si el movimiento es horizontal y mayor a 55px
+            if (diffY < 50 && Math.abs(diffX) > 55) {
+                if (diffX > 0) {
+                    changeDate(1); // Deslizar izquierda -> Día siguiente
+                } else {
+                    changeDate(-1); // Deslizar derecha -> Día anterior
+                }
+            }
+            touchStartX = 0;
+            touchStartY = 0;
+        }, { passive: true });
+
+        // Iniciar
+        render();
+
+        // REGISTRO DEL SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registrado', reg))
+                    .catch(err => console.log('Error SW', err));
+            });
+        }
+    </script>
+</body>
+</html>
