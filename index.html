@@ -10,6 +10,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     
+    <!-- ENLACE AL MANIFEST -->
+    <link rel="manifest" href="manifest.json">
+    
     <title>MacroTracker IA - Fitness Tracker</title>
     
     <!-- Tailwind CSS -->
@@ -103,7 +106,6 @@
             return dateObj.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
         };
 
-        // --- VALORES INICIALES ---
         const DEFAULT_SETTINGS = {
             profile: { name: '', weight: '', age: '', height: '', goal: 'bulk_clean', activity: '1.375' },
             goals: { p: 140, c: 280, f: 65 },
@@ -388,7 +390,7 @@
             return '';
         }
 
-        // --- ASISTENTE DE BIENVENIDA ---
+        // --- ASISTENTE DE BIENVENIDA (ONBOARDING) ---
         function renderOnboardingModal() {
             const step = state.onboardingStep;
             const temp = state.tempOnboarding;
@@ -545,7 +547,6 @@
             render();
         }
 
-        // --- CÁLCULO DE METAS DENTRO DE AJUSTES (4 OBJETIVOS) ---
         function calculateSettingsMagicGoals() {
             const w = document.getElementById('set_weight')?.value || state.settings.profile.weight;
             const h = document.getElementById('set_height')?.value || state.settings.profile.height;
@@ -739,7 +740,6 @@
             `;
         }
 
-        // --- MODAL CALENDARIO / SEMANA (LUNES A DOMINGO ESTRICTO) ---
         function renderCalendarModal() {
             const { goals } = state.settings;
             const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -757,11 +757,10 @@
                 return { p, c, f, met: p >= goals.p && c >= goals.c && f >= goals.f };
             };
 
-            // Cálculo de la semana natural completa (Lunes a Domingo)
             const getMondayToSundayWeek = (refDateStr = state.currentDate) => {
                 const [y, m, d] = refDateStr.split('-');
                 const curr = new Date(y, m - 1, d);
-                const dayOfWeek = curr.getDay(); // 0 = Domingo, 1 = Lunes...
+                const dayOfWeek = curr.getDay();
                 const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
                 
                 const monday = new Date(curr);
@@ -1312,6 +1311,15 @@
 
         // Iniciar
         render();
+
+        // REGISTRO DEL SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registrado', reg))
+                    .catch(err => console.log('Error SW', err));
+            });
+        }
     </script>
 </body>
 </html>
