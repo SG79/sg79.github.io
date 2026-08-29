@@ -442,15 +442,18 @@
             }
         }
 
-        // --- RENDER PRINCIPAL CON CONTROL ESTRICTO DE ANIMACIONES ---
+        // --- RENDER PRINCIPAL CON CONTROL DE SCROLL Y ANIMACIONES ---
         function render() {
             const app = document.getElementById('app');
             const { settings, history, currentDate, activeMealId, slideDir, shouldAnimateDay } = state;
             const activeDateData = history[currentDate] || {};
 
-            // Memorizar scroll de modales antes de renderizar
-            const scrollContainer = document.getElementById('modal-scroll-container');
-            const savedScrollTop = scrollContainer ? scrollContainer.scrollTop : 0;
+            // Memorizar scroll de la pantalla principal y de modales
+            const mainScrollContainer = document.getElementById('main-scroll-container');
+            const savedMainScrollTop = mainScrollContainer ? mainScrollContainer.scrollTop : 0;
+
+            const modalScrollContainer = document.getElementById('modal-scroll-container');
+            const savedModalScrollTop = modalScrollContainer ? modalScrollContainer.scrollTop : 0;
 
             const meals = settings.templates.map(t => ({
                 id: t.id,
@@ -494,7 +497,6 @@
                 return `<span class="text-[10px] text-emerald-600 font-black ml-1">(Exacto ✓)</span>`;
             };
 
-            // Clase de animación SOLO si ocurrió cambio de día
             const dayAnimClass = shouldAnimateDay ? (slideDir === 'next' ? 'slide-in-next' : 'slide-in-prev') : '';
 
             app.innerHTML = `
@@ -534,8 +536,8 @@
                     </div>
                 </header>
 
-                <!-- CONTENIDO PRINCIPAL -->
-                <main class="flex-1 overflow-y-auto p-4 lg:p-6 overflow-x-hidden">
+                <!-- CONTENIDO PRINCIPAL CON ID DE SCROLL -->
+                <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 lg:p-6 overflow-x-hidden">
                     <div class="lg:grid lg:grid-cols-12 lg:gap-6 ${dayAnimClass} flex flex-col gap-4">
                         
                         <!-- COLUMNA IZQUIERDA EN PC: RESUMEN -->
@@ -612,7 +614,7 @@
                                             ${activeMeal.completed ? `
                                                 <span class="text-emerald-600 text-xs font-black bg-emerald-100 px-3 py-0.5 rounded-full">¡Comida Lista! 😋</span>
                                             ` : (adaptive.sugP > 0 || adaptive.sugC > 0 || adaptive.sugF > 0) ? `
-                                                <span class="inline-block text-[11px] font-extrabold px-3 py-0.5 rounded-full border ${adaptive.isAdapted ? 'bg-orange-50 text-orange-700 border-orange-200' : (adaptive.isManual ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-stone-100 text-stone-600 border-stone-200')}">
+                                                <span class="inline-block text-[11px] font-extrabold px-3 py-0.5 rounded-full border ${adaptive.isAdapted ? 'bg-orange-50 text-orange-700 border-orange-200' : (adaptive.isManual ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-stone-100 text-stone-600 border border-stone-200')}">
                                                     ${adaptive.isAdapted ? '🌱 Meta adaptada en esta comida:' : (adaptive.isManual ? '🎯 Meta de esta comida:' : '💡 Sugerido en esta comida:')} 
                                                     <span class="text-rose-500 mx-0.5">${adaptive.sugP}P</span> · <span class="text-amber-500 mx-0.5">${adaptive.sugC}C</span> · <span class="text-teal-600 mx-0.5">${adaptive.sugF}G</span>
                                                 </span>
@@ -669,10 +671,16 @@
             state.shouldAnimateDay = false;
             state.modalJustOpened = false;
 
+            // Restaurar scroll de la pantalla principal
+            const newMainScrollContainer = document.getElementById('main-scroll-container');
+            if (newMainScrollContainer && savedMainScrollTop > 0) {
+                newMainScrollContainer.scrollTop = savedMainScrollTop;
+            }
+
             // Restaurar scroll de modales si estaban abiertos
-            const newScrollContainer = document.getElementById('modal-scroll-container');
-            if (newScrollContainer && savedScrollTop > 0) {
-                newScrollContainer.scrollTop = savedScrollTop;
+            const newModalScrollContainer = document.getElementById('modal-scroll-container');
+            if (newModalScrollContainer && savedModalScrollTop > 0) {
+                newModalScrollContainer.scrollTop = savedModalScrollTop;
             }
         }
 
@@ -689,7 +697,7 @@
 
         // --- GESTIÓN DE PLANTILLAS EN AJUSTES ---
         function addMealTemplate() {
-            saveSettingsForm(false); // Guarda lo que el usuario haya escrito en inputs antes de agregar
+            saveSettingsForm(false);
             const newId = 'm' + Date.now();
             state.settings.templates.push({
                 id: newId,
@@ -1332,7 +1340,7 @@
 
                             ${!aiLoading && !aiResult ? `
                                 ${aiHubTab === 'scan' ? `
-                                    <div class="bg-white rounded-3xl border border-stone-200 p-5 shadow-sm space-y-3.5">
+                                    <div class="bg-white rounded-3xl border border-stone-200 p-5 shadow-sm space-y-3.5 smooth-enter">
                                         <span class="text-xs font-black text-stone-400 uppercase tracking-widest block">1. Foto del Plato o Etiqueta (Opcional)</span>
                                         
                                         <div onclick="document.getElementById('ai_photo').click()" class="w-full h-36 rounded-2xl border-2 border-dashed border-stone-200 hover:border-indigo-300 bg-stone-50 flex flex-col items-center justify-center cursor-pointer overflow-hidden relative transition-colors">
@@ -1358,26 +1366,29 @@
                                 ` : ''}
 
                                 ${aiHubTab === 'solver' ? `
-                                    <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-sm space-y-3.5">
+                                    <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-sm space-y-3.5 smooth-enter">
                                         <span class="text-xs font-black text-stone-400 uppercase tracking-widest block">¿Qué alimento quieres comer?</span>
                                         <input type="text" id="solver_food" placeholder="Ej: Avena, Pechuga de pollo, Aguacate..." class="w-full bg-stone-50 rounded-xl p-3 font-bold text-sm outline-none border border-stone-200 focus:border-indigo-400 transition-colors">
                                         <span class="text-xs font-black text-stone-400 uppercase tracking-widest block pt-2">¿Cuántos gramos meta quieres?</span>
-                                        <div class="flex gap-2">
-                                            <input type="number" id="solver_amount" placeholder="Ej: 35" class="flex-1 bg-stone-50 rounded-xl p-3 font-black text-sm text-center border border-stone-200 focus:border-indigo-400 transition-colors">
-                                            <select id="solver_macro" class="bg-stone-100 rounded-xl px-3 font-black text-xs text-stone-700 outline-none border border-stone-200">
+                                        
+                                        <!-- SELECTOR COMPLETAMENTE ENCAJADO -->
+                                        <div class="flex gap-2 w-full items-center">
+                                            <input type="number" id="solver_amount" placeholder="Ej: 35" class="flex-1 min-w-0 bg-stone-50 rounded-xl p-3 font-black text-sm text-center border border-stone-200 focus:border-indigo-400 transition-colors">
+                                            <select id="solver_macro" class="w-auto min-w-[130px] max-w-[50%] bg-stone-100 rounded-xl px-3 py-3 font-black text-xs text-stone-700 outline-none border border-stone-200 truncate cursor-pointer shrink-0">
                                                 <option value="Proteína">Proteína (P)</option>
                                                 <option value="Carbohidratos">Carbos (C)</option>
                                                 <option value="Grasa">Grasa (G)</option>
                                             </select>
                                         </div>
-                                        <button onclick="runAISolver()" class="w-full py-3.5 rounded-2xl bg-stone-800 hover:bg-stone-900 text-white font-black text-base shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                        
+                                        <button onclick="runAISolver()" class="w-full py-3.5 rounded-2xl bg-stone-800 hover:bg-stone-900 text-white font-black text-base shadow-md active:scale-95 transition-transform flex items-center justify-center gap-2 mt-2">
                                             ${Icons.Scale} Calcular Porción Exacta
                                         </button>
                                     </div>
                                 ` : ''}
 
                                 ${aiHubTab === 'advisor' ? `
-                                    <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-sm text-center">
+                                    <div class="bg-white p-5 rounded-3xl border border-stone-200 shadow-sm text-center smooth-enter">
                                         <span class="text-xs font-black text-stone-400 uppercase tracking-widest block mb-2">Macros Restantes Hoy</span>
                                         <div class="flex justify-center gap-4 my-2">
                                             <span class="text-sm font-black text-rose-500">${remP}g Pro</span>
@@ -1418,7 +1429,7 @@
         // --- ACCIONES DE ESTADO ---
         function openModal(modalName) { 
             state.modal = modalName; 
-            state.modalJustOpened = true; // Activa animación de entrada al abrir modal
+            state.modalJustOpened = true;
             render(); 
         }
 
@@ -1478,7 +1489,7 @@
         }
 
         function changeDate(days) {
-            state.shouldAnimateDay = true; // Activa animación de swipe solo aquí
+            state.shouldAnimateDay = true;
             state.slideDir = days > 0 ? 'next' : 'prev';
             const [y, m, d] = state.currentDate.split('-');
             const dateObj = new Date(y, m - 1, d);
